@@ -4,6 +4,7 @@ import (
 	"context"
 	"flowing/internal/model/common"
 	"flowing/internal/repository"
+	"flowing/internal/repository/db"
 )
 
 type Role struct {
@@ -19,8 +20,8 @@ func (Role) TableName() string {
 
 type UserRole struct {
 	common.BaseModel
-	UserId int `json:"user_id" gorm:"column:user_id;type:int;not null;"`
-	RoleId int `json:"role_id" gorm:"column:role_id;type:int;not null;"`
+	UserId int64 `json:"user_id" gorm:"column:user_id;type:int;not null;"`
+	RoleId int64 `json:"role_id" gorm:"column:role_id;type:int;not null;"`
 }
 
 func (UserRole) TableName() string {
@@ -44,4 +45,18 @@ func GetRole(ctx context.Context, id int) (*Role, error) {
 
 func CreateUserRole(ctx context.Context, user *UserRole) error {
 	return repository.DB().WithContext(ctx).Create(user).Error
+}
+
+func ListRole(ctx context.Context, query RoleQuery) ([]Role, int64, error) {
+	var roles []Role
+	var total int64
+	d := repository.DB().WithContext(ctx)
+	if query.RoleName != "" {
+		d = d.Where("role_name like ?", "%"+query.RoleName+"%")
+	}
+	err := d.Scopes(db.Page(query.Page, query.PageNum, query.PageSize, &total)).
+		Preload("menus").
+		Find(&roles).
+		Error
+	return roles, total, err
 }

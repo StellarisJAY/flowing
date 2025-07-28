@@ -25,8 +25,8 @@ func (m *Menu) TableName() string {
 
 type RoleMenu struct {
 	common.BaseModel
-	RoleId int `json:"role_id" gorm:"column:role_id;type:int;not null;"`
-	MenuId int `json:"menu_id" gorm:"column:menu_id;type:int;not null;"`
+	RoleId int64 `json:"role_id" gorm:"column:role_id;type:int;not null;"`
+	MenuId int64 `json:"menu_id" gorm:"column:menu_id;type:int;not null;"`
 }
 
 func (m *RoleMenu) TableName() string {

@@ -9,17 +9,17 @@ import (
 
 func Page(page bool, pageNum, pageSize int, total *int64) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		if !page {
-			return db
-		}
 		if pageNum == 0 {
 			pageNum = 1
 		}
 		if pageSize == 0 {
 			pageSize = 10
 		}
-		offset := (pageNum - 1) * pageSize
 		db.Count(total)
+		if !page {
+			return db
+		}
+		offset := (pageNum - 1) * pageSize
 		return db.Offset(offset).Limit(pageSize)
 	}
 }

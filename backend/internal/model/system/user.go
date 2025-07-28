@@ -11,7 +11,7 @@ type User struct {
 	common.BaseModel
 	Username string `json:"username" gorm:"column:username;type:varchar(50);unique;not null;"`
 	NickName string `json:"nickName" gorm:"column:nick_name;type:varchar(50);not null;"`
-	Password string `json:"password" gorm:"column:password;type:varchar(255);not null;"`
+	Password string `json:"-" gorm:"column:password;type:varchar(255);not null;"`
 	Email    string `json:"email" gorm:"column:email;type:varchar(255);not null;"`
 	Phone    string `json:"phone" gorm:"column:phone;type:varchar(255);not null;"`
 	Status   int    `json:"status" gorm:"column:status;type:int;default:1;"`
@@ -28,6 +28,14 @@ type UserQuery struct {
 	Username string `json:"username" form:"username"`
 	NickName string `json:"nickName" form:"nickName"`
 	Status   int    `json:"status" form:"status"`
+}
+
+type CreateUserReq struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	NickName string `json:"nickName"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
 }
 
 func CreateUser(ctx context.Context, user *User) error {
@@ -53,6 +61,6 @@ func ListUser(ctx context.Context, query UserQuery) ([]User, int64, error) {
 	if query.Status != 0 {
 		d = d.Where("status = ?", query.Status)
 	}
-	err := d.Scopes(db.Page(query.Page, query.PageNum, query.PageSize, &total)).Preload("roles").Find(&users).Error
+	err := d.Scopes(db.Page(query.Page, query.PageNum, query.PageSize, &total)).Preload("roles").Scan(&users).Error
 	return users, total, err
 }
