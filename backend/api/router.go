@@ -13,6 +13,11 @@ func InitRouter(e *gin.Engine) {
 		u.POST("/create", system.CreateUser)
 	}
 	{
+		r := g.Group("/role")
+		r.GET("/list", system.ListRole)
+		r.POST("/create", system.CreateRole)
+	}
+	{
 		m := g.Group("/menu")
 		m.GET("/list", system.ListMenuTree)
 		m.POST("/create", system.CreateMenu)

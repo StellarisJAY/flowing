@@ -9,9 +9,10 @@ import (
 
 type Role struct {
 	common.BaseModel
-	RoleName    string `json:"role_name" gorm:"column:role_name;type:varchar(50);not null;"`
-	Description string `json:"description" gorm:"column:description;type:varchar(200)"`
-	Menus       []Menu `json:"menus" gorm:"many2many:sys_role_menu;"`
+	RoleName    string  `json:"roleName" gorm:"column:role_name;type:varchar(50);not null"`
+	RoleKey     string  `json:"roleKey" gorm:"column:role_key;type:varchar(50);not null;unique"`
+	Description string  `json:"description" gorm:"column:description;type:varchar(200)"`
+	Menus       []*Menu `json:"menus" gorm:"many2many:sys_role_menu;"`
 }
 
 func (Role) TableName() string {
@@ -20,17 +21,24 @@ func (Role) TableName() string {
 
 type UserRole struct {
 	common.BaseModel
-	UserId int64 `json:"user_id" gorm:"column:user_id;type:int;not null;"`
-	RoleId int64 `json:"role_id" gorm:"column:role_id;type:int;not null;"`
+	UserId int64 `json:"userId" gorm:"column:user_id;type:int;not null;"`
+	RoleId int64 `json:"roleId" gorm:"column:role_id;type:int;not null;"`
 }
 
 func (UserRole) TableName() string {
 	return "sys_user_role"
 }
 
+type CreateRoleReq struct {
+	RoleName    string `json:"roleName" binding:"required"`
+	RoleKey     string `json:"roleKey" binding:"required"`
+	Description string `json:"description" binding:"required"`
+}
+
 type RoleQuery struct {
 	common.BaseQuery
-	RoleName string `json:"role_name" form:"role_name"`
+	RoleName string `json:"roleName" form:"roleName"`
+	RoleKey  string `json:"roleKey" form:"roleKey"`
 }
 
 func CreateRole(ctx context.Context, role *Role) error {
@@ -50,13 +58,16 @@ func CreateUserRole(ctx context.Context, user *UserRole) error {
 func ListRole(ctx context.Context, query RoleQuery) ([]Role, int64, error) {
 	var roles []Role
 	var total int64
-	d := repository.DB().WithContext(ctx)
+	d := repository.DB().WithContext(ctx).Model(Role{})
 	if query.RoleName != "" {
 		d = d.Where("role_name like ?", "%"+query.RoleName+"%")
 	}
+	if query.RoleKey != "" {
+		d = d.Where("role_key like ?", "%"+query.RoleKey+"%")
+	}
 	err := d.Scopes(db.Page(query.Page, query.PageNum, query.PageSize, &total)).
 		Preload("menus").
-		Find(&roles).
+		Scan(&roles).
 		Error
 	return roles, total, err
 }
