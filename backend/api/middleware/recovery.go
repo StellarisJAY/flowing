@@ -22,6 +22,7 @@ func Recovery() gin.RecoveryFunc {
 func errorMessage(err error) common.BaseResp {
 	var e global.Error
 	if errors.As(err, &e) {
+		slog.Error("发生错误", "error", e.Internal, "stack", string(debug.Stack()))
 		return common.Resp(e.Code, e.Message)
 	}
 	switch {

@@ -16,4 +16,15 @@ func MigrateDB() {
 	if err != nil {
 		panic(err)
 	}
+	//password := hex.EncodeToString(sha256.New().Sum([]byte("123456")))
+	//if err := system.CreateUser(context.Background(), &system.User{
+	//	Username: "admin",
+	//	NickName: "admin",
+	//	Password: password,
+	//	Email:    "admin@admin",
+	//	Phone:    "",
+	//	Status:   1,
+	//}); err != nil {
+	//	panic(err)
+	//}
 }

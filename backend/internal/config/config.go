@@ -24,4 +24,7 @@ type Config struct {
 		Level  string `yaml:"level"`
 		Path   string `yaml:"path"`
 	} `yaml:"logger"`
+	Jwt struct {
+		Secret string `yaml:"secret"`
+	} `yaml:"jwt"`
 }

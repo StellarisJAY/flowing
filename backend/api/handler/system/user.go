@@ -30,15 +30,3 @@ func ListUser(c *gin.Context) {
 	}
 	c.JSON(200, common.PageResp(users, total))
 }
-
-func Login(c *gin.Context) {
-	var login model.LoginReq
-	if err := c.ShouldBindJSON(&login); err != nil {
-		panic(global.ErrBadRequest)
-	}
-	token, err := service.Login(c, login)
-	if err != nil {
-		panic(err)
-	}
-	c.JSON(200, common.OkWithData(token))
-}

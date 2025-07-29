@@ -4,11 +4,13 @@ import (
 	"flowing/internal/config"
 	"log/slog"
 	"os"
+	"path"
 )
 
 func InitLogger(conf *config.Config) {
 	writer := os.Stdout
 	if conf.Logger.Path != "" {
+		_ = os.MkdirAll(path.Dir(conf.Logger.Path), os.ModePerm)
 		file, err := os.OpenFile(conf.Logger.Path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 		if err != nil {
 			panic(err)

@@ -4,10 +4,15 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"flowing/global"
 	sysmodel "flowing/internal/model/system"
 	"flowing/internal/repository"
+	"flowing/internal/util"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"log/slog"
+	"time"
 )
 
 const captchaKeyPrefix = "captcha_"
@@ -30,23 +35,47 @@ func ListUser(ctx context.Context, query sysmodel.UserQuery) ([]sysmodel.User, i
 	return sysmodel.ListUser(ctx, query)
 }
 
-func GenCaptcha() (string, string, error) {
-	// TODO 生成验证码
-	return "todo", "todo", nil
+func GenCaptcha(_ context.Context) (string, string, error) {
+	id, img, err := util.GenCaptcha()
+	if err != nil {
+		return "", "", global.NewError(500, "生成验证码失败", err)
+	}
+	return id, img, nil
 }
 
 func Login(ctx context.Context, req sysmodel.LoginReq) (string, error) {
-	captcha, err := repository.Redis().Get(ctx, captchaKeyPrefix+req.CaptchaKey).Result()
-	if err != nil || captcha != req.Captcha {
-		slog.Info("验证码错误", "username", req.Username, "captcha", req.Captcha, "captchaKey", req.CaptchaKey)
-		return "", global.NewError(400, "验证码错误", err)
+	if !util.VerifyCaptcha(req.CaptchaKey, req.Captcha) {
+		return "", global.NewError(400, "验证码错误", nil)
 	}
 	enc := sha256.New()
 	password := hex.EncodeToString(enc.Sum([]byte(req.Password)))
 	if ok, _ := sysmodel.CheckLogin(ctx, req.Username, password); !ok {
 		slog.Info("用户登录失败", "username", req.Username)
-		return "", global.NewError(400, "用户名或密码错误", err)
+		return "", global.NewError(400, "用户名或密码错误", nil)
 	}
-	// TODO 生成token
-	return "token", nil
+	// 获取用户信息
+	user, err := sysmodel.GetUser(ctx, req.Username)
+	if err != nil {
+		return "", global.NewError(500, "登录失败", err)
+	}
+
+	claims := jwt.RegisteredClaims{
+		Issuer:    "flowing",
+		Subject:   "access_token",
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
+		IssuedAt:  jwt.NewNumericDate(time.Now()),
+		ID:        uuid.New().String(),
+	}
+	// 生成token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(repository.Config().Jwt.Secret))
+	if err != nil {
+		return "", global.NewError(500, "登录失败", err)
+	}
+	// 缓存用户信息
+	userInfo, _ := json.Marshal(user)
+	if err := repository.Redis().SetEx(ctx, claims.ID, string(userInfo), time.Hour*24).Err(); err != nil {
+		return "", global.NewError(500, "登录失败", err)
+	}
+	return tokenString, nil
 }

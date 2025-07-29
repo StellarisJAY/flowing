@@ -10,8 +10,10 @@ redis:
   password:
   db: 0
 server:
-  port: 8787
+  port: 8585
 logger:
   format: json
   level: debug
   path: logs/server.log
+jwt:
+  secret: abcd1234

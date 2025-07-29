@@ -13,6 +13,7 @@ type Data struct {
 	db        *gorm.DB
 	snowflake *snowflake.Node
 	redis     *redis.Client
+	config    *config.Config
 }
 
 var data *Data
@@ -29,6 +30,10 @@ func Snowflake() *snowflake.Node {
 	return data.snowflake
 }
 
+func Config() *config.Config {
+	return data.config
+}
+
 func Init(c *config.Config) {
 	database, err := db.Init(c)
 	if err != nil {
@@ -40,5 +45,6 @@ func Init(c *config.Config) {
 		db:        database,
 		snowflake: sf,
 		redis:     redisCli,
+		config:    c,
 	}
 }

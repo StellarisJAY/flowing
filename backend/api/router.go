@@ -1,6 +1,7 @@
 package api
 
 import (
+	"flowing/api/handler/sys"
 	"flowing/api/handler/system"
 	"flowing/api/middleware"
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,8 @@ func InitRouter(e *gin.Engine) {
 	g.Use(gin.CustomRecoveryWithWriter(io.Discard, middleware.Recovery()))
 	g.Use(middleware.CORS())
 	{
-		g.POST("/login", system.Login)
+		g.POST("/login", sys.Login)
+		g.GET("/captcha", sys.GetCaptcha)
 	}
 	{
 		u := g.Group("/user")
