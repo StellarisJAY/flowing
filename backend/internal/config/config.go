@@ -10,7 +10,18 @@ type Config struct {
 	MySQL struct {
 		DSN string `yaml:"dsn"`
 	} `yaml:"mysql"`
+	Redis struct {
+		Host     string `yaml:"host"`
+		Port     uint   `yaml:"port"`
+		DB       int    `yaml:"db"`
+		Password string `yaml:"password"`
+	} `yaml:"redis"`
 	Server struct {
 		Port string `yaml:"port"`
 	} `yaml:"server"`
+	Logger struct {
+		Format string `yaml:"format"`
+		Level  string `yaml:"level"`
+		Path   string `yaml:"path"`
+	} `yaml:"logger"`
 }

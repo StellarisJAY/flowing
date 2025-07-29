@@ -1,13 +1,5 @@
 package common
 
-import "errors"
-
-var (
-	ErrBadRequest   = errors.New("bad request")
-	ErrUnauthorized = errors.New("unauthorized")
-	ErrForbidden    = errors.New("forbidden")
-)
-
 type BaseResp struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
@@ -19,6 +11,13 @@ func Ok() BaseResp {
 	return BaseResp{
 		Code:    200,
 		Message: "success",
+	}
+}
+
+func Resp(code int, message string) BaseResp {
+	return BaseResp{
+		Code:    code,
+		Message: message,
 	}
 }
 

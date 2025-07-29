@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"flowing/api"
+	"flowing/global"
 	"flowing/internal/config"
 	"flowing/internal/migration"
 	"flowing/internal/repository"
@@ -14,6 +15,7 @@ import (
 )
 
 func initialize(conf *config.Config) {
+	global.InitLogger(conf)
 	// 初始化数据库
 	repository.Init(conf)
 	migration.MigrateDB()

@@ -38,6 +38,13 @@ type CreateUserReq struct {
 	Phone    string `json:"phone"`
 }
 
+type LoginReq struct {
+	Username   string `json:"username" binding:"required"`
+	Password   string `json:"password" binding:"required"`
+	Captcha    string `json:"captcha" binding:"required"`
+	CaptchaKey string `json:"captchaKey" binding:"required"`
+}
+
 func CreateUser(ctx context.Context, user *User) error {
 	return repository.DB().WithContext(ctx).Create(user).Error
 }
@@ -63,4 +70,17 @@ func ListUser(ctx context.Context, query UserQuery) ([]User, int64, error) {
 	}
 	err := d.Scopes(db.Page(query.Page, query.PageNum, query.PageSize, &total)).Preload("roles").Scan(&users).Error
 	return users, total, err
+}
+
+func CheckLogin(ctx context.Context, username string, password string) (bool, error) {
+	var count int64
+	err := repository.DB().WithContext(ctx).Model(&User{}).
+		Where("username = ?", username).
+		Where("password = ?", password).
+		Count(&count).
+		Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
