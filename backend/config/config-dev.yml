@@ -2,5 +2,7 @@ db:
   driver: postgres
 postgres:
   dsn: host=127.0.0.1 user=postgres password=yourpassword dbname=yourdb port=5432 sslmode=disable
+mysql:
+  dsn: user:password@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local&allowPublicKeyRetrieval=true
 server:
   port: 8787
