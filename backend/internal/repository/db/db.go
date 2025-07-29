@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"flowing/internal/config"
+	"flowing/internal/repository/db/mysql"
 	"flowing/internal/repository/db/postgres"
 	"gorm.io/gorm"
 )
@@ -28,6 +29,8 @@ func Init(c *config.Config) (*gorm.DB, error) {
 	switch c.DB.Driver {
 	case "postgres":
 		return postgres.Init(c)
+	case "mysql":
+		return mysql.Init(c)
 	default:
 		return nil, errors.New("DB driver not supported")
 	}

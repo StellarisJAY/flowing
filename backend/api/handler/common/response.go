@@ -31,6 +31,21 @@ func PageResp(data any, total int64) BaseResp {
 	}
 }
 
+func OkWithMessage(message string) BaseResp {
+	return BaseResp{
+		Code:    200,
+		Message: message,
+	}
+}
+
+func OkWithData(data any) BaseResp {
+	return BaseResp{
+		Code:    200,
+		Message: "success",
+		Data:    data,
+	}
+}
+
 func Error(err error) BaseResp {
 	return BaseResp{
 		Code:    500,

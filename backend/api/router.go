@@ -12,4 +12,9 @@ func InitRouter(e *gin.Engine) {
 		u.GET("/list", system.ListUser)
 		u.POST("/create", system.CreateUser)
 	}
+	{
+		m := g.Group("/menu")
+		m.GET("/list", system.ListMenuTree)
+		m.POST("/create", system.CreateMenu)
+	}
 }
