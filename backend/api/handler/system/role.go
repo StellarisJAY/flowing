@@ -6,6 +6,7 @@ import (
 	model "flowing/internal/model/system"
 	service "flowing/internal/service/system"
 	"github.com/gin-gonic/gin"
+	"log/slog"
 )
 
 func CreateRole(c *gin.Context) {
@@ -29,4 +30,27 @@ func ListRole(c *gin.Context) {
 		panic(err)
 	}
 	c.JSON(200, common.PageResp(roles, total))
+}
+
+func CreateUserRole(c *gin.Context) {
+	var req model.CreateUserRoleReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		slog.Error("error", "e", err)
+		panic(global.ErrBadRequest)
+	}
+	if err := service.CreateUserRole(c, req); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
+}
+
+func CreateRoleMenu(c *gin.Context) {
+	var req model.CreateRoleMenuReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		panic(global.ErrBadRequest)
+	}
+	if err := service.CreateRoleMenu(c, req); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
 }

@@ -17,6 +17,11 @@ func InitRouter(e *gin.Engine) {
 		g.GET("/captcha", sys.GetCaptcha)
 	}
 	{
+		s := g.Group("/sys")
+		s.Use(middleware.Auth())
+		s.GET("/menus", sys.GetUserMenus)
+	}
+	{
 		u := g.Group("/user")
 		u.Use(middleware.Auth())
 		u.GET("/list", system.ListUser)
@@ -27,6 +32,8 @@ func InitRouter(e *gin.Engine) {
 		r.Use(middleware.Auth())
 		r.GET("/list", system.ListRole)
 		r.POST("/create", system.CreateRole)
+		r.POST("/grant", system.CreateUserRole)
+		r.POST("/menu", system.CreateRoleMenu)
 	}
 	{
 		m := g.Group("/menu")

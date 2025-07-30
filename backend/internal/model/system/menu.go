@@ -16,7 +16,7 @@ type Menu struct {
 	common.BaseModel
 	MenuName  string  `json:"menuName" gorm:"column:menu_name;type:varchar(50);not null;"`
 	Type      int     `json:"type" gorm:"column:type;type:int;not null;"`
-	Path      string  `json:"path" gorm:"column:path;type:varchar(255);not null;"`
+	Path      string  `json:"path" gorm:"column:path;type:varchar(255);not null;unique"`
 	Component string  `json:"component" gorm:"column:component;type:varchar(255);not null;"`
 	ParentId  int64   `json:"parentId" gorm:"column:parent_id;type:int;not null;"`
 	OrderNum  int     `json:"orderNum" gorm:"column:order_num;type:int;not null;"`
@@ -30,8 +30,8 @@ func (m *Menu) TableName() string {
 
 type RoleMenu struct {
 	common.BaseModel
-	RoleId int64 `json:"role_id" gorm:"column:role_id;type:int;not null;"`
-	MenuId int64 `json:"menu_id" gorm:"column:menu_id;type:int;not null;"`
+	RoleId int64 `json:"role_id" gorm:"column:role_id;type:int;not null; unique: role_menu_index"`
+	MenuId int64 `json:"menu_id" gorm:"column:menu_id;type:int;not null; unique: role_menu_index"`
 }
 
 func (m *RoleMenu) TableName() string {
@@ -49,6 +49,11 @@ type CreateMenuReq struct {
 	Component string `json:"component"`
 	ParentId  int64  `json:"parentId"`
 	OrderNum  int    `json:"orderNum"`
+}
+
+type CreateRoleMenuReq struct {
+	RoleId int64 `json:"roleId,string" binding:"required"`
+	MenuId int64 `json:"menuId,string" binding:"required"`
 }
 
 func CreateMenu(ctx context.Context, menu *Menu) error {
@@ -80,4 +85,17 @@ func CreateRoleMenu(ctx context.Context, roleId, menuId int64) error {
 		RoleId: roleId,
 		MenuId: menuId,
 	}).Error
+}
+
+func GetUserMenus(ctx context.Context, userId int64) ([]*Menu, error) {
+	var menus []*Menu
+	if err := repository.DB().WithContext(ctx).Table("sys_menu").
+		Select("sys_menu.*").
+		Joins("INNER JOIN sys_role_menu ON sys_menu.id = sys_role_menu.menu_id").
+		Joins("INNER JOIN sys_user_role ON sys_user_role.role_id = sys_role_menu.role_id").
+		Where("sys_user_role.user_id = ?", userId).
+		Find(&menus).Error; err != nil {
+		return nil, err
+	}
+	return menus, nil
 }

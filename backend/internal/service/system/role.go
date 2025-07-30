@@ -27,3 +27,14 @@ func ListRole(ctx context.Context, query sysmodel.RoleQuery) ([]sysmodel.Role, i
 	}
 	return roles, total, nil
 }
+
+func CreateUserRole(ctx context.Context, req sysmodel.CreateUserRoleReq) error {
+	return sysmodel.CreateUserRole(ctx, &sysmodel.UserRole{
+		UserId: req.UserId,
+		RoleId: req.RoleId,
+	})
+}
+
+func CreateRoleMenu(ctx context.Context, req sysmodel.CreateRoleMenuReq) error {
+	return sysmodel.CreateRoleMenu(ctx, req.RoleId, req.MenuId)
+}

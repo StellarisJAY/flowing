@@ -21,8 +21,8 @@ func (Role) TableName() string {
 
 type UserRole struct {
 	common.BaseModel
-	UserId int64 `json:"userId" gorm:"column:user_id;type:int;not null;"`
-	RoleId int64 `json:"roleId" gorm:"column:role_id;type:int;not null;"`
+	UserId int64 `json:"userId" gorm:"column:user_id;type:int;not null; unique: user_role_index"`
+	RoleId int64 `json:"roleId" gorm:"column:role_id;type:int;not null; unique: user_role_index"`
 }
 
 func (UserRole) TableName() string {
@@ -39,6 +39,11 @@ type RoleQuery struct {
 	common.BaseQuery
 	RoleName string `json:"roleName" form:"roleName"`
 	RoleKey  string `json:"roleKey" form:"roleKey"`
+}
+
+type CreateUserRoleReq struct {
+	RoleId int64 `json:"roleId,string" binding:"required"`
+	UserId int64 `json:"userId,string" binding:"required"`
 }
 
 func CreateRole(ctx context.Context, role *Role) error {

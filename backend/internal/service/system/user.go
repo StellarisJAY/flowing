@@ -79,3 +79,11 @@ func Login(ctx context.Context, req sysmodel.LoginReq) (string, error) {
 	}
 	return tokenString, nil
 }
+
+func GetUserMenus(ctx context.Context, userId int64) ([]*sysmodel.Menu, error) {
+	menus, err := sysmodel.GetUserMenus(ctx, userId)
+	if err != nil {
+		return nil, global.NewError(500, "获取菜单失败", err)
+	}
+	return buildMenuTree(menus), nil
+}
