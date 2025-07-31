@@ -11,7 +11,7 @@ import (
 func Login(c *gin.Context) {
 	var login model.LoginReq
 	if err := c.ShouldBindJSON(&login); err != nil {
-		panic(global.ErrBadRequest)
+		panic(global.ErrBadRequest(err))
 	}
 	token, err := service.Login(c, login)
 	if err != nil {

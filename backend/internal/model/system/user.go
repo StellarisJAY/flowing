@@ -16,7 +16,7 @@ type User struct {
 	Phone    string `json:"phone" gorm:"column:phone;type:varchar(255);not null;"`
 	Status   int    `json:"status" gorm:"column:status;type:int;default:1;"`
 
-	Roles []Role `json:"roles" gorm:"many2many:sys_user_role;foreignKey:id;joinForeignKey:user_id;References:id;joinReferences:role_id"`
+	Roles []Role `json:"roles" gorm:"many2many:sys_user_role"`
 }
 
 func (User) TableName() string {
@@ -51,7 +51,7 @@ func CreateUser(ctx context.Context, user *User) error {
 
 func GetUser(ctx context.Context, username string) (*User, error) {
 	var user User
-	err := repository.DB().WithContext(ctx).Model(&User{}).Where("username = ?", username).First(&user).Preload("roles").Error
+	err := repository.DB().WithContext(ctx).Model(&User{}).Where("username = ?", username).Preload("Roles").First(&user).Error
 	return &user, err
 }
 
@@ -68,7 +68,10 @@ func ListUser(ctx context.Context, query UserQuery) ([]User, int64, error) {
 	if query.Status != 0 {
 		d = d.Where("status = ?", query.Status)
 	}
-	err := d.Scopes(db.Page(query.Page, query.PageNum, query.PageSize, &total)).Preload("roles").Scan(&users).Error
+	if err := d.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	err := d.Scopes(db.Page(query.Page, query.PageNum, query.PageSize)).Preload("Roles").Find(&users).Error
 	return users, total, err
 }
 

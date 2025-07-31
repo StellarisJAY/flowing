@@ -14,14 +14,15 @@ const (
 
 type Menu struct {
 	common.BaseModel
-	MenuName  string  `json:"menuName" gorm:"column:menu_name;type:varchar(50);not null;"`
-	Type      int     `json:"type" gorm:"column:type;type:int;not null;"`
-	Path      string  `json:"path" gorm:"column:path;type:varchar(255);not null;unique"`
-	Component string  `json:"component" gorm:"column:component;type:varchar(255);not null;"`
-	ParentId  int64   `json:"parentId" gorm:"column:parent_id;type:int;not null;"`
-	OrderNum  int     `json:"orderNum" gorm:"column:order_num;type:int;not null;"`
-	Status    int     `json:"status" gorm:"column:status;type:int;default:1;"`
-	Children  []*Menu `json:"children" gorm:"-"`
+	MenuName   string  `json:"menuName" gorm:"column:menu_name;type:varchar(50);not null;"`
+	Type       int     `json:"type" gorm:"column:type;type:int;not null;"`
+	Path       string  `json:"path" gorm:"column:path;type:varchar(255);not null;unique"`
+	Component  string  `json:"component" gorm:"column:component;type:varchar(255);not null;"`
+	ParentId   int64   `json:"parentId" gorm:"column:parent_id;type:int;not null;"`
+	OrderNum   int     `json:"orderNum" gorm:"column:order_num;type:int;not null;"`
+	Status     int     `json:"status" gorm:"column:status;type:int;default:1;"`
+	ActionCode *string `json:"actionCode" gorm:"column:action_code;type:varchar(50);unique;default:null"` // 权限标识
+	Children   []*Menu `json:"children" gorm:"-"`
 }
 
 func (m *Menu) TableName() string {
@@ -30,12 +31,17 @@ func (m *Menu) TableName() string {
 
 type RoleMenu struct {
 	common.BaseModel
-	RoleId int64 `json:"role_id" gorm:"column:role_id;type:int;not null; unique: role_menu_index"`
-	MenuId int64 `json:"menu_id" gorm:"column:menu_id;type:int;not null; unique: role_menu_index"`
+	RoleId int64 `json:"role_id" gorm:"column:role_id;type:int;not null; uniqueIndex: role_menu_index"`
+	MenuId int64 `json:"menu_id" gorm:"column:menu_id;type:int;not null; uniqueIndex: role_menu_index"`
 }
 
 func (m *RoleMenu) TableName() string {
 	return "sys_role_menu"
+}
+
+type RoleGrantedMenu struct {
+	RoleMenuId int64 `json:"role_menu_id" gorm:"column:role_menu_id;"`
+	Menu
 }
 
 type MenuQuery struct {
@@ -43,17 +49,24 @@ type MenuQuery struct {
 }
 
 type CreateMenuReq struct {
-	MenuName  string `json:"menuName" binding:"required"`
-	Type      int    `json:"type" binding:"required"`
-	Path      string `json:"path" binding:"required"`
-	Component string `json:"component"`
-	ParentId  int64  `json:"parentId"`
-	OrderNum  int    `json:"orderNum"`
+	MenuName   string  `json:"menuName" binding:"required"`
+	Type       int     `json:"type" binding:"required"`
+	Path       string  `json:"path" binding:"required"`
+	Component  string  `json:"component"`
+	ParentId   int64   `json:"parentId"`
+	OrderNum   int     `json:"orderNum"`
+	ActionCode *string `json:"actionCode"`
 }
 
 type CreateRoleMenuReq struct {
-	RoleId int64 `json:"roleId,string" binding:"required"`
-	MenuId int64 `json:"menuId,string" binding:"required"`
+	RoleId  int64   `json:"roleId,string" binding:"required"`
+	MenuIds []int64 `json:"menuIds" binding:"required"`
+}
+
+type SaveRoleMenuReq struct {
+	RoleId     int64   `json:"roleId,string" binding:"required"`
+	NewMenuIds []int64 `json:"newMenuIds" binding:"required"`
+	OldMenuIds []int64 `json:"oldMenuIds" binding:"required"`
 }
 
 func CreateMenu(ctx context.Context, menu *Menu) error {
@@ -80,11 +93,8 @@ func ListMenu(ctx context.Context, query MenuQuery) ([]*Menu, error) {
 	return menus, nil
 }
 
-func CreateRoleMenu(ctx context.Context, roleId, menuId int64) error {
-	return repository.DB().WithContext(ctx).Create(&RoleMenu{
-		RoleId: roleId,
-		MenuId: menuId,
-	}).Error
+func CreateRoleMenu(ctx context.Context, rms []RoleMenu) error {
+	return repository.DB().WithContext(ctx).CreateInBatches(rms, 64).Error
 }
 
 func GetUserMenus(ctx context.Context, userId int64) ([]*Menu, error) {

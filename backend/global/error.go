@@ -1,7 +1,6 @@
 package global
 
 var (
-	ErrBadRequest   = NewError(400, "bad request", nil)
 	ErrUnauthorized = NewError(401, "unauthorized", nil)
 	ErrForbidden    = NewError(403, "forbidden", nil)
 )
@@ -25,4 +24,8 @@ func NewError(code int, message string, internal error) Error {
 		Message:  message,
 		Internal: internal,
 	}
+}
+
+func ErrBadRequest(err error) Error {
+	return NewError(400, "bad request", err)
 }

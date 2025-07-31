@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func Page(page bool, pageNum, pageSize int, total *int64) func(db *gorm.DB) *gorm.DB {
+func Page(page bool, pageNum, pageSize int) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		if pageNum == 0 {
 			pageNum = 1
@@ -16,7 +16,6 @@ func Page(page bool, pageNum, pageSize int, total *int64) func(db *gorm.DB) *gor
 		if pageSize == 0 {
 			pageSize = 10
 		}
-		db.Count(total)
 		if !page {
 			return db
 		}

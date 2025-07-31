@@ -15,8 +15,6 @@ import (
 	"time"
 )
 
-const captchaKeyPrefix = "captcha_"
-
 func CreateUser(ctx context.Context, user sysmodel.CreateUserReq) error {
 	enc := sha256.New()
 	password := hex.EncodeToString(enc.Sum([]byte(user.Password)))
@@ -85,5 +83,5 @@ func GetUserMenus(ctx context.Context, userId int64) ([]*sysmodel.Menu, error) {
 	if err != nil {
 		return nil, global.NewError(500, "获取菜单失败", err)
 	}
-	return buildMenuTree(menus), nil
+	return buildMenuTree(menus, false), nil
 }

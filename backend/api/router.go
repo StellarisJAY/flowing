@@ -9,9 +9,9 @@ import (
 )
 
 func InitRouter(e *gin.Engine) {
+	e.Use(middleware.CORS())
 	g := e.Group("/api")
 	g.Use(gin.CustomRecoveryWithWriter(io.Discard, middleware.Recovery()))
-	g.Use(middleware.CORS())
 	{
 		g.POST("/login", sys.Login)
 		g.GET("/captcha", sys.GetCaptcha)
@@ -20,6 +20,7 @@ func InitRouter(e *gin.Engine) {
 		s := g.Group("/sys")
 		s.Use(middleware.Auth())
 		s.GET("/menus", sys.GetUserMenus)
+		s.GET("/permissions", sys.GetUserAllPermissions)
 	}
 	{
 		u := g.Group("/user")
@@ -34,6 +35,7 @@ func InitRouter(e *gin.Engine) {
 		r.POST("/create", system.CreateRole)
 		r.POST("/grant", system.CreateUserRole)
 		r.POST("/menu", system.CreateRoleMenu)
+		r.POST("/menus", system.SaveRoleMenus)
 	}
 	{
 		m := g.Group("/menu")

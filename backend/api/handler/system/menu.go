@@ -11,7 +11,7 @@ import (
 func CreateMenu(c *gin.Context) {
 	var req model.CreateMenuReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		panic(global.ErrBadRequest)
+		panic(global.ErrBadRequest(err))
 	}
 	if err := service.CreateMenu(c, req); err != nil {
 		panic(err)
@@ -22,7 +22,7 @@ func CreateMenu(c *gin.Context) {
 func ListMenuTree(c *gin.Context) {
 	var query model.MenuQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		panic(global.ErrBadRequest)
+		panic(global.ErrBadRequest(err))
 	}
 	menus, err := service.ListMenuTree(c, query)
 	if err != nil {

@@ -21,8 +21,8 @@ func (Role) TableName() string {
 
 type UserRole struct {
 	common.BaseModel
-	UserId int64 `json:"userId" gorm:"column:user_id;type:int;not null; unique: user_role_index"`
-	RoleId int64 `json:"roleId" gorm:"column:role_id;type:int;not null; unique: user_role_index"`
+	UserId int64 `json:"userId" gorm:"column:user_id;type:int;not null;uniqueIndex:idx_user_role_id"`
+	RoleId int64 `json:"roleId" gorm:"column:role_id;type:int;not null;uniqueIndex:idx_user_role_id"`
 }
 
 func (UserRole) TableName() string {
@@ -52,7 +52,7 @@ func CreateRole(ctx context.Context, role *Role) error {
 
 func GetRole(ctx context.Context, id int) (*Role, error) {
 	var role Role
-	err := repository.DB().WithContext(ctx).Where("id =?", id).Preload("menus").First(&role).Error
+	err := repository.DB().WithContext(ctx).Where("id =?", id).Preload("Menus").First(&role).Error
 	return &role, err
 }
 
@@ -60,19 +60,22 @@ func CreateUserRole(ctx context.Context, user *UserRole) error {
 	return repository.DB().WithContext(ctx).Create(user).Error
 }
 
-func ListRole(ctx context.Context, query RoleQuery) ([]Role, int64, error) {
-	var roles []Role
+func ListRole(ctx context.Context, query RoleQuery) ([]*Role, int64, error) {
+	var roles []*Role
 	var total int64
-	d := repository.DB().WithContext(ctx).Model(Role{})
+	d := repository.DB().WithContext(ctx).Model(&Role{})
 	if query.RoleName != "" {
 		d = d.Where("role_name like ?", "%"+query.RoleName+"%")
 	}
 	if query.RoleKey != "" {
 		d = d.Where("role_key like ?", "%"+query.RoleKey+"%")
 	}
-	err := d.Scopes(db.Page(query.Page, query.PageNum, query.PageSize, &total)).
-		Preload("menus").
-		Scan(&roles).
+	if err := d.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	err := d.Scopes(db.Page(query.Page, query.PageNum, query.PageSize)).
+		Preload("Menus").
+		Find(&roles).
 		Error
 	return roles, total, err
 }

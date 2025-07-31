@@ -13,23 +13,27 @@ func CreateMenu(ctx context.Context, menu sysmodel.CreateMenuReq) error {
 		}
 	}
 	model := &sysmodel.Menu{
-		MenuName:  menu.MenuName,
-		Type:      menu.Type,
-		Path:      menu.Path,
-		Component: menu.Component,
-		ParentId:  menu.ParentId,
-		OrderNum:  menu.OrderNum,
+		MenuName:   menu.MenuName,
+		Type:       menu.Type,
+		Path:       menu.Path,
+		Component:  menu.Component,
+		ParentId:   menu.ParentId,
+		OrderNum:   menu.OrderNum,
+		ActionCode: menu.ActionCode,
 	}
 	return sysmodel.CreateMenu(ctx, model)
 }
 
-func buildMenuTree(menus []*sysmodel.Menu) []*sysmodel.Menu {
+func buildMenuTree(menus []*sysmodel.Menu, excludeButtons bool) []*sysmodel.Menu {
 	menuMap := make(map[int64]*sysmodel.Menu)
 	for _, menu := range menus {
 		menuMap[menu.Id] = menu
 	}
 	var rootMenus []*sysmodel.Menu
 	for _, menu := range menus {
+		if excludeButtons && menu.Type == sysmodel.MenuTypeButton {
+			continue
+		}
 		if menu.ParentId == 0 {
 			rootMenus = append(rootMenus, menu)
 			continue
@@ -49,5 +53,5 @@ func ListMenuTree(ctx context.Context, query sysmodel.MenuQuery) ([]*sysmodel.Me
 	if err != nil {
 		return nil, err
 	}
-	return buildMenuTree(menus), nil
+	return buildMenuTree(menus, false), nil
 }

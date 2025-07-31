@@ -13,7 +13,7 @@ import (
 func Recovery() gin.RecoveryFunc {
 	return func(c *gin.Context, err any) {
 		if err != nil && err.(error) != nil {
-			c.JSON(500, errorMessage(err.(error)))
+			c.JSON(200, errorMessage(err.(error)))
 			c.Abort()
 		}
 	}

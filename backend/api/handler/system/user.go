@@ -11,7 +11,7 @@ import (
 func CreateUser(c *gin.Context) {
 	var user model.CreateUserReq
 	if err := c.ShouldBindJSON(&user); err != nil {
-		panic(global.ErrBadRequest)
+		panic(global.ErrBadRequest(err))
 	}
 	if err := service.CreateUser(c, user); err != nil {
 		panic(err)
@@ -22,7 +22,7 @@ func CreateUser(c *gin.Context) {
 func ListUser(c *gin.Context) {
 	var query model.UserQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		panic(global.ErrBadRequest)
+		panic(global.ErrBadRequest(err))
 	}
 	users, total, err := service.ListUser(c, query)
 	if err != nil {
