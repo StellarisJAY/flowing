@@ -1,4 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router';
+import { usePermission } from '@/stores/permission.js';
+
+const modules = import.meta.glob('@/**/**/*.vue');
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -8,31 +11,60 @@ const router = createRouter({
       component: () => import('@/layouts/page/index.vue'),
       children: [
         {
-          path: "login",
-          component: ()=>import('@/views/sys/login/index.vue')
-        }
-      ]
-    },
-    {
-      path: '/system',
-      component: () => import('@/layouts/default/index.vue'),
-      meta: {hideTab: true},
-      children: [
-        {
-          path: "user",
-          component: ()=>import('@/views/system/user/index.vue')
+          name: '登录',
+          path: 'login',
+          component: () => import('@/views/sys/login/index.vue'),
         },
-        {
-          path: "menu",
-          component: ()=>import('@/views/system/user/index.vue')
-        }
-      ]
-    }
+      ],
+    },
   ],
 });
 
-export const setupRouterGuard = ()=>{
+const buildRoutes = (menus) => {
+  console.log(modules)
+  menus.forEach((menu) => {
+    const item = {
+      path: menu.path,
+      name: menu.menuName,
+      meta: {
+        title: menu.menuName,
+        icon: menu.icon,
+      },
+      children: []
+    };
+    item.component = modules[`${menu.component}`];
+    menu.children.forEach((child)=>{
+      const childItem = {
+        path: child.path,
+        name: child.menuName,
+        meta: {
+          title: child.menuName,
+          icon: child.icon,
+        }
+      };
+      childItem.component = modules[`/src${child.component}`];
+      item.children.push(childItem);
+    })
+    router.addRoute(item);
+  });
+  console.log(router.getRoutes());
+};
 
-}
+export const setupRouterGuard = () => {
+  router.beforeEach(async (to, from, next) => {
+    const permissionStore = usePermission();
+    if (to.path === '/sys/login') {
+      next();
+      return;
+    }
+    if (permissionStore.isPermissionLoaded) {
+      next();
+      return;
+    }
+    const menus = await permissionStore.getUserPermissions();
+    buildRoutes(menus);
+    next();
+  });
+};
 
-export default router
+export default router;

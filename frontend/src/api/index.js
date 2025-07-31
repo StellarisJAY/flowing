@@ -7,7 +7,7 @@ const http = axios.create({
 
 http.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("flowing_token");
+        const token = localStorage.getItem("flowing_access_token");
         if (token) {
             config.headers['X-Access-Token'] = token;
         }
@@ -24,8 +24,8 @@ http.interceptors.response.use(
       return data;
     }
     if (code === 401) {
-      localStorage.removeItem("flowing_token");
-      window.location.href = "/login";
+      localStorage.removeItem("flowing_access_token");
+      window.location.href = "/sys/login";
       return;
     }
     return Promise.reject(message || "Error");
