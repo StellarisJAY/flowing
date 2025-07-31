@@ -29,6 +29,10 @@ const router = createRouter({
       ]
     }
   ],
-})
+});
+
+export const setupRouterGuard = ()=>{
+
+}
 
 export default router
