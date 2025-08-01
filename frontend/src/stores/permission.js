@@ -1,27 +1,52 @@
-import {defineStore} from 'pinia';
-import {getUserAllPermissions} from '@/api/sys/permission.js';
+import { defineStore } from 'pinia';
+import { getUserAllPermissions } from '@/api/sys/permission.js';
 
-export const usePermission = defineStore("flowing_user_permission", {
+export const usePermissionStore = defineStore('flowing_user_permission', {
   state: () => ({
-    isPermissionLoaded: false,
-    menus: [],
+    permissionLoaded: false,
+    navMenus: [],
     actions: [],
   }),
   getters: {
-    isPermissionLoaded: (state) => state.isPermissionLoaded,
-    menus: (state) => state.menus,
+    isPermissionLoaded: (state) => state.permissionLoaded,
   },
   actions: {
+    setPermissionLoaded(value) {
+      this.permissionLoaded = value;
+    },
     async getUserPermissions() {
       try {
-        const { menus, actions } = await getUserAllPermissions();
-        Reflect.set(this, "isPermissionLoaded", true);
-        Reflect.set(this, "menus", menus);
-        Reflect.set(this, "actions", actions);
+        const { menus } = await getUserAllPermissions();
         return menus;
-      }catch (err) {
+      } catch (err) {
         console.error(err);
       }
-    }
-  }
-})
+      return null;
+    },
+    setNavMenus(menus) {
+      const navMenus = [];
+      menus.forEach((menu) => {
+        const navMenu = {
+          key: menu['path'],
+          label: menu['menuName'],
+          path: menu['path'],
+          icon: menu['icon'],
+          order: menu['orderNum'],
+          children: [],
+        };
+        navMenus.push(navMenu);
+        menu.children?.forEach((child) => {
+          const navChild = {
+            key: child['path'],
+            label: child['menuName'],
+            path: child['path'],
+            icon: child['icon'],
+            order: child['orderNum'],
+          };
+          navMenu.children.push(navChild);
+        });
+      });
+      this.navMenus = navMenus;
+    },
+  },
+});

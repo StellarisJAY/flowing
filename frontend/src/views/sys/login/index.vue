@@ -34,7 +34,7 @@
   import { Button, Form, Input, message} from 'ant-design-vue';
   import { onMounted, reactive, ref } from 'vue';
   import { getCaptcha, login } from './api.js';
-  import { userStore } from '@/stores/user.js';
+  import { useUserStore } from '@/stores/user.js';
   import {useRouter} from 'vue-router';
 
   const loading = ref(false);
@@ -69,7 +69,7 @@
     captchaKey: '',
   });
   const captchaImage = ref('');
-  const store = userStore();
+  const store = useUserStore();
   const router = useRouter();
 
   onMounted(() => {

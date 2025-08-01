@@ -2,13 +2,30 @@
   <Layout class="flowing-layout">
     <Layout.Header class="flowing-header">
       <div class="flowing-header-logo"></div>
-      <Menu class="flowing-header-menu" mode="horizontal" :items="menuItems"/>
+      <Menu
+        class="flowing-header-menu"
+        mode="horizontal"
+        :items="menuItems"
+        :selectable="false"
+        @click="onMenuItemClick"
+      />
       <div class="flowing-header-avatar"></div>
     </Layout.Header>
 
     <Layout.Content class="flowing-content">
-      <Tabs v-model:activeKey = "activeTab" type="editable-card" @edit="editTabs" :hideAdd="true">
-        <Tabs.TabPane v-for="(panel) in panels" :key="panel.key" :tab="panel.title" :closable="panel.closable">
+      <Tabs
+        :activeKey="activeTab"
+        type="editable-card"
+        @edit="editTabs"
+        :hideAdd="true"
+        @tabClick="onTabClick"
+      >
+        <Tabs.TabPane
+          v-for="panel in tabPanes"
+          :key="panel.key"
+          :tab="panel.title"
+          :closable="panel.closable"
+        >
           <router-view v-slot="{ Component }">
             <transition>
               <keep-alive>
@@ -23,129 +40,69 @@
 </template>
 
 <script lang="js" setup>
-import {Layout, Menu, Tabs} from 'ant-design-vue';
-import { ref, watch } from 'vue'
-import { useRouter } from 'vue-router';
+  import { Layout, Menu, Tabs } from 'ant-design-vue';
+  import { computed, watch } from 'vue';
+  import { useRouter } from 'vue-router';
+  import { usePermissionStore } from '@/stores/permission.js';
+  import { useUserStore } from '@/stores/user.js';
 
-const router = useRouter();
+  const router = useRouter();
+  const permissionStore = usePermissionStore();
+  const userStore = useUserStore();
+  const menuItems = computed(() => permissionStore.navMenus);
+  const tabPanes = computed(() => userStore.tabPanes);
+  const activeTab = computed(() => userStore.activeTab);
 
-const menuItems = ref([
-  {
-    key: "home",
-    label: "主页",
-    path: "/home",
-  },
-  {
-    key: "system",
-    label: "系统管理",
-    path: "/system",
-    children: [
-      {
-        key: "user",
-        label: "用户管理",
-        path: "/system/user",
-      },
-    ]
-  },
-  {
-    key: "ai",
-    label: "AI管理",
-    path: "/ai",
-    children: [
-      {
-        key: "agent",
-        label: "AI Agent管理",
-        path: "/ai/agent",
-      },
-      {
-        key: "model",
-        label: "模型管理",
-        path: "/ai/model",
-      },
-      {
-        key: "knowledge",
-        label: "知识库管理",
-        path: "/ai/knowledge",
-      }
-    ]
-  },
-  {
-    key: "datasource",
-    label: "数据源管理",
-    path: "/datasource",
-    children: [
-      {
-        key: "mysql",
-        label: "数据库管理",
-        path: "/datasource/database",
-      },
-      {
-        key: "monitor",
-        label: "系统监控",
-        path: "/datasource/monitor",
-      }
-    ]
-  }
-]);
+  watch(activeTab, (newVal) => {
+    router.replace(newVal);
+  });
 
-const panels = ref([
-  {
-    key: '/system/user',
-    title: '用户管理',
-    content: '',
-    closable: true,
-  },
-  {
-    key: '/system/menu',
-    title: '菜单管理',
-    content: '',
-    closable: true,
-  }
-]);
+  const editTabs = (path) => {
+    userStore.changeTabPanesOnRouting({ path: path }, true);
+  };
 
-const activeTab = ref('/system/user');
+  const onMenuItemClick = (item) => {
+    router.push(item.key);
+  };
 
-const editTabs = (e)=>{
-};
-
-watch(activeTab, (e)=>{
-  router.replace(e);
-})
+  const onTabClick = (key) => {
+    router.replace(key);
+  };
 </script>
 
 <style scoped>
-.flowing-layout {
-  height: 100vh;
-}
-.flowing-header {
-  width: 100%;
-  background-color: #0096ff;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: start;
-  justify-content: flex-start;
-}
-.flowing-content {
-  height: 90%;
-  background-color: white;
-  padding: 10px;
-}
+  .flowing-layout {
+    height: 100vh;
+  }
+  .flowing-header {
+    width: 100%;
+    background-color: #1677ff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: start;
+    justify-content: flex-start;
+  }
+  .flowing-content {
+    height: 90%;
+    background-color: white;
+    padding: 10px;
+  }
 
-.flowing-header-logo {
-  width: 25%;
-  height: 100%;
-}
+  .flowing-header-logo {
+    width: 25%;
+    height: 100%;
+  }
 
-.flowing-header-avatar {
-  width: 25%;
-  height: 100%;
-}
+  .flowing-header-avatar {
+    width: 25%;
+    height: 100%;
+  }
 
-.flowing-header-menu {
-  background-color: transparent;
-  width: 50%;
-  color: white;
-  justify-content: center;
-}
+  .flowing-header-menu {
+    background-color: transparent;
+    width: 50%;
+    color: white;
+    justify-content: center;
+  }
 </style>

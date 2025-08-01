@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { usePermission } from '@/stores/permission.js';
-
-const modules = import.meta.glob('@/**/**/*.vue');
+import { usePermissionStore } from '@/stores/permission.js';
+import { LayoutMap, ViewMap } from '@/router/routes.js';
+import { useUserStore } from '@/stores/user.js';
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(),
   routes: [
     {
       path: '/sys',
@@ -17,34 +17,35 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: '/',
+      redirect: '/home',
+    },
   ],
+  strict: true,
+  sensitive: true,
 });
 
 const buildRoutes = (menus) => {
-  console.log(modules)
   menus.forEach((menu) => {
     const item = {
       path: menu.path,
-      name: menu.menuName,
+      name: menu['menuName'],
       meta: {
-        title: menu.menuName,
+        title: menu['menuName'],
         icon: menu.icon,
       },
-      children: []
+      children: [],
     };
-    item.component = modules[`${menu.component}`];
-    menu.children.forEach((child)=>{
+    item.component = LayoutMap[menu['component']];
+    menu.children?.forEach((child) => {
       const childItem = {
-        path: child.path,
-        name: child.menuName,
-        meta: {
-          title: child.menuName,
-          icon: child.icon,
-        }
+        name: child['menuName'],
       };
-      childItem.component = modules[`/src${child.component}`];
+      childItem.path = child.path.replace(item.path, '').slice(1);
+      childItem.component = ViewMap[child.component];
       item.children.push(childItem);
-    })
+    });
     router.addRoute(item);
   });
   console.log(router.getRoutes());
@@ -52,18 +53,32 @@ const buildRoutes = (menus) => {
 
 export const setupRouterGuard = () => {
   router.beforeEach(async (to, from, next) => {
-    const permissionStore = usePermission();
-    if (to.path === '/sys/login') {
-      next();
+    const permissionStore = usePermissionStore();
+    const userStore = useUserStore();
+    const token = userStore.getToken();
+    if (!token) {
+      if (to.path === '/sys/login') {
+        next();
+        return;
+      }
+      next({ path: '/sys/login', replace: true });
       return;
     }
     if (permissionStore.isPermissionLoaded) {
+      userStore.changeTabPanesOnRouting(to, false);
       next();
       return;
     }
     const menus = await permissionStore.getUserPermissions();
-    buildRoutes(menus);
-    next();
+    if (menus) {
+      buildRoutes(menus);
+      permissionStore.setPermissionLoaded(true);
+      permissionStore.setNavMenus(menus);
+      // 重新加载路由后，需要重新导航到当前路由，否则会出现404
+      next({ ...to, replace: true });
+    } else {
+      next({ path: '/sys/login', replace: true });
+    }
   });
 };
 
