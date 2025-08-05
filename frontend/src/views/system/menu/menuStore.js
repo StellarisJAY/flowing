@@ -2,13 +2,20 @@ import { defineStore } from 'pinia';
 import { queryMenuTree } from '@/views/system/menu/api.js';
 import { message } from 'ant-design-vue';
 
+export const queryFormSchema = [
+  {
+    name: 'menuName',
+    label: '菜单名称',
+    type: 'input',
+    placeholder: '请输入菜单名称',
+    defaultValue: '',
+  },
+];
+
 export const useMenuStore = defineStore('menuList', {
   state: () => {
     return {
       menuList: [],
-      queryForm: {
-        menuName: ""
-      },
       menuForm: {
         menuName: '',
         path: '',
@@ -18,15 +25,6 @@ export const useMenuStore = defineStore('menuList', {
         type: 1,
         icon: '',
         actionCode: '',
-      },
-      menuRules: {
-        menuName: [
-          {
-            required: true,
-            message: "请输入菜单名称",
-            trigger: "submit"
-          }
-        ],
       },
       columns: [
         {
@@ -53,14 +51,14 @@ export const useMenuStore = defineStore('menuList', {
           title: '操作',
           dataIndex: 'action',
           key: 'action',
-        }
+        },
       ],
     };
   },
   actions: {
-    async queryMenuList() {
+    async queryMenuList(query) {
       try {
-        this.menuList = await queryMenuTree(this.queryForm);
+        this.menuList = await queryMenuTree(query);
       } catch {
         message.error('获取菜单列表失败');
       }
@@ -70,17 +68,21 @@ export const useMenuStore = defineStore('menuList', {
     },
     getMenuTypeName(menuType) {
       switch (menuType) {
-        case 1: return '目录';
-        case 2: return '菜单';
-        case 3: return '按钮';
-        default: return '';
+        case 1:
+          return '目录';
+        case 2:
+          return '菜单';
+        case 3:
+          return '按钮';
+        default:
+          return '';
       }
     },
     getMenuTree() {
       return this.menuList;
     },
     clearQueryForm() {
-      this.queryForm.menuName =  "";
+      this.queryForm.menuName = '';
     },
     getMenuTypeOptions() {
       return [

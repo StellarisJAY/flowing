@@ -1,61 +1,43 @@
 <template>
-  <div style="height: 100%; width: 100%">
-    <div class="toolbar">
-      <Form v-model:form="queryForm" layout="inline">
-        <Form.Item label="菜单名称" name="menuName">
-          <Input v-model:value="queryForm.menuName" />
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" @click="menuStore.queryMenuList">查询</Button>
-        </Form.Item>
-        <Form.Item>
-          <Button @click="menuStore.clearQueryForm">重置</Button>
-        </Form.Item>
-      </Form>
-      <Button
-        type="primary"
-        @click="
-          () => {
-            menuDrawer.setVisible(true);
-          }
-        "
-        >新增菜单</Button>
-    </div>
-    <Table :columns="columns" :dataSource="menuList" :pagination="false">
-      <template #bodyCell="{ column, record }">
-        <div v-if="column.dataIndex === 'type'">
-          {{ menuStore.getMenuTypeName(record.type) }}
-        </div>
-        <div v-else-if="column.dataIndex === 'action'">
-          <Button type="link">编辑</Button>
-          <Button type="link" danger>删除</Button>
-        </div>
-      </template>
-    </Table>
-    <MenuDrawer ref="menuDrawer" />
-  </div>
+  <Table
+    :columns="columns"
+    :records="records"
+    :query-form-schema="queryFormSchema"
+    :query-form-rules="[]"
+    :pagination="false"
+    @refresh="refresh"
+  >
+    <template #tool-buttons>
+      <Button type="primary">新增菜单</Button>
+    </template>
+    <template #bodyCell="{column, record}">
+      <p v-if="column.dataIndex === 'type'">{{ menuStore.getMenuTypeName(record.type) }}</p>
+      <Space v-if="column.dataIndex === 'action'">
+        <Button type="link" size="small">编辑</Button>
+        <Button type="link" size="small" danger>删除</Button>
+      </Space>
+    </template>
+  </Table>
+  <MenuDrawer ref="menuDrawer" />
 </template>
 
 <script lang="js" setup>
-  import { computed, onMounted, reactive, ref } from 'vue';
-  import { Table, Button, Input, Form } from 'ant-design-vue';
+  import { computed, ref } from 'vue';
+  import { Button, Space } from 'ant-design-vue';
+  import Table from '@/components/Table/index.vue';
   import MenuDrawer from '@/views/system/menu/menuDrawer.vue';
-  import { useMenuStore } from '@/views/system/menu/menuStore.js';
+  import { useMenuStore, queryFormSchema } from '@/views/system/menu/menuStore.js';
 
   const menuStore = useMenuStore();
-  const menuDrawer = ref(null);
-  const menuList = computed(() => menuStore.getMenuTree());
   const columns = computed(() => menuStore.getColumns());
-  const queryForm = reactive(menuStore.queryForm);
+  const records = computed(() => menuStore.getMenuTree());
 
-  onMounted(async () => {
-    await menuStore.queryMenuList();
-  });
+  const menuDrawer = ref(null);
+
+  const refresh = async (e) => {
+    console.log(e);
+    await menuStore.queryMenuList(e);
+  };
 </script>
 
-<style scoped>
-  .toolbar {
-    display: flex;
-    justify-content: flex-start;
-  }
-</style>
+<style scoped></style>

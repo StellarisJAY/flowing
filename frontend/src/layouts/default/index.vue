@@ -19,6 +19,7 @@
         @edit="editTabs"
         :hideAdd="true"
         @tabClick="onTabClick"
+        style="height: 100%"
       >
         <Tabs.TabPane
           v-for="panel in tabPanes"
@@ -26,13 +27,15 @@
           :tab="panel.title"
           :closable="panel.closable"
         >
-          <router-view v-slot="{ Component }">
-            <transition>
-              <keep-alive>
-                <component :is="Component" />
-              </keep-alive>
-            </transition>
-          </router-view>
+          <div class="flowing-tab-content">
+            <router-view v-slot="{ Component }">
+              <transition>
+                <keep-alive>
+                  <component :is="Component" />
+                </keep-alive>
+              </transition>
+            </router-view>
+          </div>
         </Tabs.TabPane>
       </Tabs>
     </Layout.Content>
@@ -85,8 +88,6 @@
   }
   .flowing-content {
     height: 90%;
-    background-color: white;
-    padding: 10px;
   }
 
   .flowing-header-logo {
@@ -105,4 +106,23 @@
     color: white;
     justify-content: center;
   }
+
+  .flowing-tab-content {
+    height: 100%;
+    width: 90%;
+    margin: auto;
+    left: 0;
+    right: 0;
+  }
+</style>
+
+<style>
+.ant-tabs-nav {
+  background-color: white;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.ant-tabs-content {
+  height: 100%;
+}
 </style>
