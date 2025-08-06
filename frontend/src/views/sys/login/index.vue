@@ -83,8 +83,8 @@
         loading.value = true;
         return login(loginForm);
       })
-      .then((data) => {
-        store.setToken(data);
+      .then((res) => {
+        store.setToken(res.data);
         message.success("登录成功").then();
         router.push("/system");
       })
@@ -98,7 +98,8 @@
 
   const refreshCaptcha = () => {
     getCaptcha()
-      .then((data) => {
+      .then((res) => {
+        const data = res.data;
         loginForm.captchaKey = data['key'];
         captchaImage.value = data['captcha'];
       })

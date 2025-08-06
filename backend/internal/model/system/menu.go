@@ -18,11 +18,12 @@ type Menu struct {
 	Type       int     `json:"type" gorm:"column:type;type:int;not null;"`
 	Path       string  `json:"path" gorm:"column:path;type:varchar(255);not null;unique"`
 	Component  string  `json:"component" gorm:"column:component;type:varchar(255);not null;"`
-	ParentId   int64   `json:"parentId" gorm:"column:parent_id;type:int;not null;"`
+	ParentId   int64   `json:"parentId,string" gorm:"column:parent_id;type:int;not null;"`
 	OrderNum   int     `json:"orderNum" gorm:"column:order_num;type:int;not null;"`
 	Status     int     `json:"status" gorm:"column:status;type:int;default:1;"`
 	ActionCode *string `json:"actionCode" gorm:"column:action_code;type:varchar(50);unique;default:null"` // 权限标识
 	Children   []*Menu `json:"children" gorm:"-"`
+	Key        int64   `json:"key,string" gorm:"-"`
 }
 
 func (m *Menu) TableName() string {
@@ -53,7 +54,7 @@ type CreateMenuReq struct {
 	Type       int     `json:"type" binding:"required"`
 	Path       string  `json:"path" binding:"required"`
 	Component  string  `json:"component"`
-	ParentId   int64   `json:"parentId"`
+	ParentId   int64   `json:"parentId,string"`
 	OrderNum   int     `json:"orderNum"`
 	ActionCode *string `json:"actionCode"`
 }

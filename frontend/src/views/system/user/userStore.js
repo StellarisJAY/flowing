@@ -49,19 +49,23 @@ export const useUserStore = defineStore('userTable', {
         dataIndex: "email"
       }
     ],
-    records: []
+    records: [],
+    total: 0,
   }),
   actions: {
     async refresh(query) {
       const res = await queryUserList(query);
-      console.log(res);
-      this.records = res;
+      this.records = res.data;
+      this.total = res.total;
     },
     getRecords() {
       return this.records;
     },
     getColumns() {
       return this.columns;
+    },
+    getTotal() {
+      return this.total;
     }
   }
 });

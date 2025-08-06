@@ -16,8 +16,8 @@ export const usePermissionStore = defineStore('flowing_user_permission', {
     },
     async getUserPermissions() {
       try {
-        const { menus } = await getUserAllPermissions();
-        return menus;
+        const {data} = await getUserAllPermissions();
+        return data.menus;
       } catch (err) {
         console.error(err);
       }

@@ -19,9 +19,9 @@ http.interceptors.request.use(
 );
 http.interceptors.response.use(
   (response) => {
-    const {code, data, message} = response.data;
+    const {code, message} = response.data;
     if (code === 200) {
-      return data;
+      return response.data;
     }
     if (code === 401) {
       localStorage.removeItem("flowing_access_token");

@@ -28,6 +28,7 @@ func buildMenuTree(menus []*sysmodel.Menu, excludeButtons bool) []*sysmodel.Menu
 	menuMap := make(map[int64]*sysmodel.Menu)
 	for _, menu := range menus {
 		menuMap[menu.Id] = menu
+		menu.Key = menu.Id
 	}
 	var rootMenus []*sysmodel.Menu
 	for _, menu := range menus {
