@@ -22,6 +22,12 @@ func DB() *gorm.DB {
 	return data.db
 }
 
+func Tx(fn func(*gorm.DB) error) error {
+	return data.db.Transaction(func(tx *gorm.DB) error {
+		return fn(tx)
+	})
+}
+
 func Redis() *redis.Client {
 	return data.redis
 }

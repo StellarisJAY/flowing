@@ -1,6 +1,7 @@
 package api
 
 import (
+	"flowing/api/handler/ai"
 	"flowing/api/handler/sys"
 	"flowing/api/handler/system"
 	"flowing/api/middleware"
@@ -42,5 +43,20 @@ func InitRouter(e *gin.Engine) {
 		m.Use(middleware.Auth())
 		m.GET("/list", system.ListMenuTree)
 		m.POST("/create", system.CreateMenu)
+	}
+	{
+		p := g.Group("/ai/provider")
+		//p.Use(middleware.Auth())
+		p.POST("/create", ai.CreateProvider)
+		p.GET("/list", ai.ListProvider)
+	}
+	{
+		d := g.Group("/dict")
+		//d.Use(middleware.Auth())
+		d.POST("/item/create", system.CreateDictItem)
+		d.POST("/create", system.CreateDict)
+		d.GET("/list", system.ListDict)
+		d.GET("/item/list", system.ListDictItem)
+		d.GET("/item/list/code", system.ListDictItemByCode)
 	}
 }

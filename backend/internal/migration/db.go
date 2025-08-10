@@ -1,6 +1,7 @@
 package migration
 
 import (
+	"flowing/internal/model/ai"
 	"flowing/internal/model/system"
 	"flowing/internal/repository"
 )
@@ -10,9 +11,13 @@ func MigrateDB() {
 	err := db.AutoMigrate(
 		&system.User{},
 		&system.Role{},
+		&system.Dict{},
+		&system.DictItem{},
 		&system.Menu{},
 		&system.UserRole{},
-		&system.RoleMenu{})
+		&system.RoleMenu{},
+		&ai.Provider{},
+		&ai.ProviderModel{})
 	if err != nil {
 		panic(err)
 	}
