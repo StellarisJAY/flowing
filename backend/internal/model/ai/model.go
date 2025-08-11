@@ -28,5 +28,5 @@ func (a *ProviderModel) TableName() string {
 }
 
 func CreateProviderModel(ctx context.Context, model ProviderModel) error {
-	return repository.DB().WithContext(ctx).Create(&model).Error
+	return repository.DB(ctx).Create(&model).Error
 }

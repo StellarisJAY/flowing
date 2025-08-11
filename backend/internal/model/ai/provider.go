@@ -41,13 +41,13 @@ type CreateProviderReq struct {
 }
 
 func CreateProvider(ctx context.Context, model Provider) error {
-	return repository.DB().WithContext(ctx).Create(&model).Error
+	return repository.DB(ctx).Create(&model).Error
 }
 
 func ListProviders(ctx context.Context, query ProviderQuery) ([]*Provider, int64, error) {
 	var providers []*Provider
 	var total int64
-	d := repository.DB().WithContext(ctx).Model(&Provider{})
+	d := repository.DB(ctx).Model(&Provider{})
 	if query.ProviderType != "" {
 		d = d.Where("provider_type = ?", query.ProviderType)
 	}

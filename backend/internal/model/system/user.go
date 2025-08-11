@@ -31,11 +31,21 @@ type UserQuery struct {
 }
 
 type CreateUserReq struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	NickName string `json:"nickName"`
-	Email    string `json:"email"`
-	Phone    string `json:"phone"`
+	Username string   `json:"username" binding:"required"`
+	Password string   `json:"password" binding:"required"`
+	NickName string   `json:"nickName" binding:"required"`
+	Email    string   `json:"email"`
+	Phone    string   `json:"phone"`
+	RoleIds  []string `json:"roleIds" binding:"required"`
+}
+
+type UpdateUserReq struct {
+	Id       int64    `json:"id,string" binding:"required"`
+	NickName string   `json:"nickName" binding:"required"`
+	Email    string   `json:"email"`
+	Phone    string   `json:"phone"`
+	Status   int      `json:"status" binding:"required"`
+	RoleIds  []string `json:"roleIds" binding:"required"`
 }
 
 type LoginReq struct {
@@ -46,19 +56,19 @@ type LoginReq struct {
 }
 
 func CreateUser(ctx context.Context, user *User) error {
-	return repository.DB().WithContext(ctx).Create(user).Error
+	return repository.DB(ctx).Create(user).Error
 }
 
 func GetUser(ctx context.Context, username string) (*User, error) {
 	var user User
-	err := repository.DB().WithContext(ctx).Model(&User{}).Where("username = ?", username).Preload("Roles").First(&user).Error
+	err := repository.DB(ctx).Model(&User{}).Where("username = ?", username).Preload("Roles").First(&user).Error
 	return &user, err
 }
 
 func ListUser(ctx context.Context, query UserQuery) ([]User, int64, error) {
 	var users []User
 	var total int64
-	d := repository.DB().WithContext(ctx).Model(&User{})
+	d := repository.DB(ctx).Model(&User{})
 	if query.Username != "" {
 		d = d.Where("username LIKE ?", "%"+query.Username+"%")
 	}
@@ -77,7 +87,7 @@ func ListUser(ctx context.Context, query UserQuery) ([]User, int64, error) {
 
 func CheckLogin(ctx context.Context, username string, password string) (bool, error) {
 	var count int64
-	err := repository.DB().WithContext(ctx).Model(&User{}).
+	err := repository.DB(ctx).Model(&User{}).
 		Where("username = ?", username).
 		Where("password = ?", password).
 		Count(&count).
@@ -86,4 +96,8 @@ func CheckLogin(ctx context.Context, username string, password string) (bool, er
 		return false, err
 	}
 	return count > 0, nil
+}
+
+func UpdateUser(ctx context.Context, user User) error {
+	return repository.DB(ctx).Model(&user).Where("id = ?", user.Id).Updates(&user).Error
 }

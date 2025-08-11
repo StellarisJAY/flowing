@@ -5,8 +5,9 @@ import (
 	"flowing/global"
 	model "flowing/internal/model/ai"
 	service "flowing/internal/service/ai"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func CreateProvider(c *gin.Context) {

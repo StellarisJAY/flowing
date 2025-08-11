@@ -35,6 +35,13 @@ type CreateRoleReq struct {
 	Description string `json:"description" binding:"required"`
 }
 
+type UpdateRoleReq struct {
+	Id          int64  `json:"id,string" binding:"required"`
+	RoleName    string `json:"roleName" binding:"required"`
+	RoleKey     string `json:"roleKey" binding:"required"`
+	Description string `json:"description" binding:"required"`
+}
+
 type RoleQuery struct {
 	common.BaseQuery
 	RoleName string `json:"roleName" form:"roleName"`
@@ -47,23 +54,23 @@ type CreateUserRoleReq struct {
 }
 
 func CreateRole(ctx context.Context, role *Role) error {
-	return repository.DB().WithContext(ctx).Create(role).Error
+	return repository.DB(ctx).Create(role).Error
 }
 
 func GetRole(ctx context.Context, id int) (*Role, error) {
 	var role Role
-	err := repository.DB().WithContext(ctx).Where("id =?", id).Preload("Menus").First(&role).Error
+	err := repository.DB(ctx).Where("id =?", id).Preload("Menus").First(&role).Error
 	return &role, err
 }
 
 func CreateUserRole(ctx context.Context, user *UserRole) error {
-	return repository.DB().WithContext(ctx).Create(user).Error
+	return repository.DB(ctx).Create(user).Error
 }
 
 func ListRole(ctx context.Context, query RoleQuery) ([]*Role, int64, error) {
 	var roles []*Role
 	var total int64
-	d := repository.DB().WithContext(ctx).Model(&Role{})
+	d := repository.DB(ctx).Model(&Role{})
 	if query.RoleName != "" {
 		d = d.Where("role_name like ?", "%"+query.RoleName+"%")
 	}
@@ -78,4 +85,8 @@ func ListRole(ctx context.Context, query RoleQuery) ([]*Role, int64, error) {
 		Find(&roles).
 		Error
 	return roles, total, err
+}
+
+func UpdateRole(ctx context.Context, role Role) error {
+	return repository.DB(ctx).Model(&Role{}).Where("id = ?", role.Id).Updates(role).Error
 }

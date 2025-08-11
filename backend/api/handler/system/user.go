@@ -5,6 +5,8 @@ import (
 	"flowing/global"
 	model "flowing/internal/model/system"
 	service "flowing/internal/service/system"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,4 +31,27 @@ func ListUser(c *gin.Context) {
 		panic(err)
 	}
 	c.JSON(200, common.PageResp(users, total))
+}
+
+func UpdateUser(c *gin.Context) {
+	var user model.UpdateUserReq
+	if err := c.ShouldBindJSON(&user); err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	if err := service.UpdateUser(c, user); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
+}
+
+func DeleteUser(c *gin.Context) {
+	id := c.Param("id")
+	userId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	if err := service.DeleteUser(c, userId); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
 }

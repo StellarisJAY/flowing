@@ -5,17 +5,22 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"flowing/global"
 	sysmodel "flowing/internal/model/system"
 	"flowing/internal/repository"
 	"flowing/internal/util"
+	"log/slog"
+	"strconv"
+	"time"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"log/slog"
-	"time"
+	"gorm.io/gorm"
 )
 
 func CreateUser(ctx context.Context, user sysmodel.CreateUserReq) error {
+	// 密码加密
 	enc := sha256.New()
 	password := hex.EncodeToString(enc.Sum([]byte(user.Password)))
 	userModel := sysmodel.User{
@@ -26,7 +31,63 @@ func CreateUser(ctx context.Context, user sysmodel.CreateUserReq) error {
 		Phone:    user.Phone,
 		Status:   1,
 	}
-	return sysmodel.CreateUser(ctx, &userModel)
+	return repository.Tx(ctx, func(c context.Context) error {
+		// 创建用户实体
+		if err := sysmodel.CreateUser(c, &userModel); err != nil {
+			return global.NewError(500, "创建用户失败", err)
+		}
+		// 创建用户角色关联
+		if err := saveUserRole(c, userModel.Id, user.RoleIds); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func UpdateUser(ctx context.Context, user sysmodel.UpdateUserReq) error {
+	userModel := sysmodel.User{
+		NickName: user.NickName,
+		Email:    user.Email,
+		Phone:    user.Phone,
+		Status:   user.Status,
+	}
+	return repository.Tx(ctx, func(c context.Context) error {
+		// 更新用户实体
+		if err := sysmodel.UpdateUser(c, userModel); err != nil {
+			return global.NewError(500, "更新用户失败", err)
+		}
+		// 创建用户角色关联
+		if err := saveUserRole(c, userModel.Id, user.RoleIds); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func saveUserRole(ctx context.Context, userId int64, roleIds []string) error {
+	// 创建用户角色关联
+	userRoles := make([]sysmodel.UserRole, len(roleIds))
+	for i, roleId := range roleIds {
+		roleId, err := strconv.ParseInt(roleId, 10, 64)
+		if err != nil {
+			continue
+		}
+		userRoles[i] = sysmodel.UserRole{
+			UserId: userId,
+			RoleId: roleId,
+		}
+	}
+	// 删除所有用户角色关联
+	err := repository.DB(ctx).Model(&sysmodel.UserRole{}).Where("user_id = ?", userId).Delete(&sysmodel.UserRole{}).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return global.NewError(500, "设置用户角色失败", err)
+	}
+	// 批量创建用户角色关联
+	err = repository.DB(ctx).Model(&sysmodel.UserRole{}).CreateInBatches(userRoles, 10).Error
+	if err != nil {
+		return global.NewError(500, "设置用户角色失败", err)
+	}
+	return nil
 }
 
 func ListUser(ctx context.Context, query sysmodel.UserQuery) ([]sysmodel.User, int64, error) {
@@ -84,4 +145,19 @@ func GetUserMenus(ctx context.Context, userId int64) ([]*sysmodel.Menu, error) {
 		return nil, global.NewError(500, "获取菜单失败", err)
 	}
 	return buildMenuTree(menus, false), nil
+}
+
+func DeleteUser(ctx context.Context, userId int64) error {
+	return repository.Tx(ctx, func(c context.Context) error {
+		// 删除用户角色关联
+		if err := repository.DB(c).Delete(&sysmodel.UserRole{}, "user_id = ?", userId).Error; err != nil {
+			return global.NewError(500, "删除用户失败", err)
+		}
+		// 删除用户
+		if err := repository.DB(c).Delete(&sysmodel.User{}, "id = ?", userId).Error; err != nil {
+			return global.NewError(500, "删除用户失败", err)
+		}
+		// TODO 其他用户关联表
+		return nil
+	})
 }

@@ -3,7 +3,10 @@ package system
 import (
 	"context"
 	"errors"
+	"flowing/global"
+	"flowing/internal/model/common"
 	sysmodel "flowing/internal/model/system"
+	"flowing/internal/repository"
 )
 
 func CreateMenu(ctx context.Context, menu sysmodel.CreateMenuReq) error {
@@ -49,10 +52,61 @@ func buildMenuTree(menus []*sysmodel.Menu, excludeButtons bool) []*sysmodel.Menu
 	return rootMenus
 }
 
+func getAllChildMenuIds(menus []*sysmodel.Menu, parentId int64) []int64 {
+	var childIds []int64
+	for _, menu := range menus {
+		if menu.ParentId == parentId {
+			childIds = append(childIds, menu.Id)
+			childIds = append(childIds, getAllChildMenuIds(menus, menu.Id)...)
+		}
+	}
+	return childIds
+}
+
 func ListMenuTree(ctx context.Context, query sysmodel.MenuQuery) ([]*sysmodel.Menu, error) {
 	menus, err := sysmodel.ListMenu(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 	return buildMenuTree(menus, false), nil
+}
+
+func UpdateMenu(ctx context.Context, req sysmodel.UpdateMenuReq) error {
+	if req.ParentId != 0 {
+		if _, err := sysmodel.GetMenu(ctx, req.ParentId); err != nil {
+			return errors.New("父级菜单不存在")
+		}
+	}
+	return sysmodel.UpdateMenu(ctx, sysmodel.Menu{
+		BaseModel:  common.BaseModel{Id: req.Id},
+		MenuName:   req.MenuName,
+		Type:       req.Type,
+		Path:       req.Path,
+		Component:  req.Component,
+		ParentId:   req.ParentId,
+		OrderNum:   req.OrderNum,
+		ActionCode: req.ActionCode,
+	})
+}
+
+func DeleteMenu(ctx context.Context, id int64) error {
+	return repository.Tx(ctx, func(c context.Context) error {
+		// 获取所有菜单
+		menus, err := sysmodel.ListMenu(c, sysmodel.MenuQuery{})
+		if err != nil {
+			return global.NewError(500, "删除菜单失败", err)
+		}
+		// 找到所有子菜单
+		childIds := getAllChildMenuIds(menus, id)
+		menuIds := append(childIds, id)
+		// 删除菜单和子菜单
+		if err := sysmodel.BatchDeleteMenu(c, menuIds); err != nil {
+			return global.NewError(500, "删除菜单失败", err)
+		}
+		// 删除角色-菜单关联
+		if err := repository.DB(c).Delete(&sysmodel.RoleMenu{}, "menu_id IN ?", menuIds).Error; err != nil {
+			return global.NewError(500, "删除菜单失败", err)
+		}
+		return nil
+	})
 }

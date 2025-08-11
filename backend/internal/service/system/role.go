@@ -3,6 +3,7 @@ package system
 import (
 	"context"
 	"flowing/global"
+	"flowing/internal/model/common"
 	sysmodel "flowing/internal/model/system"
 	"flowing/internal/repository"
 )
@@ -37,17 +38,6 @@ func CreateUserRole(ctx context.Context, req sysmodel.CreateUserRoleReq) error {
 	})
 }
 
-func CreateRoleMenu(ctx context.Context, req sysmodel.CreateRoleMenuReq) error {
-	rms := make([]sysmodel.RoleMenu, 0, len(req.MenuIds))
-	for _, menuId := range req.MenuIds {
-		rms = append(rms, sysmodel.RoleMenu{
-			RoleId: req.RoleId,
-			MenuId: menuId,
-		})
-	}
-	return sysmodel.CreateRoleMenu(ctx, rms)
-}
-
 func SaveRoleMenus(ctx context.Context, req sysmodel.SaveRoleMenuReq) error {
 	oldMenus := make(map[int64]struct{})
 	for _, menuId := range req.OldMenuIds {
@@ -73,13 +63,43 @@ func SaveRoleMenus(ctx context.Context, req sysmodel.SaveRoleMenuReq) error {
 		}
 	}
 
-	err := repository.DB().WithContext(ctx).Delete(sysmodel.RoleMenu{}, "role_id = ? and menu_id in ?", req.RoleId, toDelete).Error
-	if err != nil {
-		return global.NewError(500, "删除角色菜单失败", err)
+	return repository.Tx(ctx, func(c context.Context) error {
+		err := repository.DB(c).Delete(sysmodel.RoleMenu{}, "role_id = ? and menu_id in ?", req.RoleId, toDelete).Error
+		if err != nil {
+			return global.NewError(500, "删除角色菜单失败", err)
+		}
+		err = repository.DB(c).CreateInBatches(toCreate, 64).Error
+		if err != nil {
+			return global.NewError(500, "新增角色菜单失败", err)
+		}
+		return nil
+	})
+}
+
+func UpdateRole(ctx context.Context, req sysmodel.UpdateRoleReq) error {
+	role := sysmodel.Role{
+		BaseModel:   common.BaseModel{Id: req.Id},
+		RoleName:    req.RoleName,
+		RoleKey:     req.RoleKey,
+		Description: req.Description,
 	}
-	err = repository.DB().WithContext(ctx).CreateInBatches(toCreate, 64).Error
-	if err != nil {
-		return global.NewError(500, "新增角色菜单失败", err)
-	}
-	return nil
+	return sysmodel.UpdateRole(ctx, role)
+}
+
+func DeleteRole(ctx context.Context, id int64) error {
+	return repository.Tx(ctx, func(c context.Context) error {
+		// 删除角色
+		if err := repository.DB(c).Delete(sysmodel.Role{}, "id = ?", id).Error; err != nil {
+			return global.NewError(500, "删除角色失败", err)
+		}
+		// 删除角色-用户关联
+		if err := repository.DB(c).Delete(sysmodel.UserRole{}, "role_id = ?", id).Error; err != nil {
+			return global.NewError(500, "删除角色失败", err)
+		}
+		// 删除角色-菜单关联
+		if err := repository.DB(c).Delete(sysmodel.RoleMenu{}, "role_id = ?", id).Error; err != nil {
+			return global.NewError(500, "删除角色失败", err)
+		}
+		return nil
+	})
 }

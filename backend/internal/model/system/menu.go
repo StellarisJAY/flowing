@@ -59,6 +59,17 @@ type CreateMenuReq struct {
 	ActionCode *string `json:"actionCode"`
 }
 
+type UpdateMenuReq struct {
+	Id         int64   `json:"id,string" binding:"required"`
+	MenuName   string  `json:"menuName" binding:"required"`
+	Type       int     `json:"type" binding:"required"`
+	Path       string  `json:"path" binding:"required"`
+	Component  string  `json:"component"`
+	ParentId   int64   `json:"parentId,string"`
+	OrderNum   int     `json:"orderNum"`
+	ActionCode *string `json:"actionCode"`
+}
+
 type CreateRoleMenuReq struct {
 	RoleId  int64   `json:"roleId,string" binding:"required"`
 	MenuIds []int64 `json:"menuIds" binding:"required"`
@@ -71,12 +82,12 @@ type SaveRoleMenuReq struct {
 }
 
 func CreateMenu(ctx context.Context, menu *Menu) error {
-	return repository.DB().WithContext(ctx).Create(menu).Error
+	return repository.DB(ctx).Create(menu).Error
 }
 
 func GetMenu(ctx context.Context, menuId int64) (*Menu, error) {
 	var menu Menu
-	if err := repository.DB().WithContext(ctx).First(&menu, menuId).Error; err != nil {
+	if err := repository.DB(ctx).First(&menu, menuId).Error; err != nil {
 		return nil, err
 	}
 	return &menu, nil
@@ -84,7 +95,7 @@ func GetMenu(ctx context.Context, menuId int64) (*Menu, error) {
 
 func ListMenu(ctx context.Context, query MenuQuery) ([]*Menu, error) {
 	var menus []*Menu
-	db := repository.DB().WithContext(ctx).Model(&Menu{})
+	db := repository.DB(ctx).Model(&Menu{})
 	if query.MenuName != "" {
 		db = db.Where("menu_name LIKE ?", "%"+query.MenuName+"%")
 	}
@@ -95,12 +106,12 @@ func ListMenu(ctx context.Context, query MenuQuery) ([]*Menu, error) {
 }
 
 func CreateRoleMenu(ctx context.Context, rms []RoleMenu) error {
-	return repository.DB().WithContext(ctx).CreateInBatches(rms, 64).Error
+	return repository.DB(ctx).CreateInBatches(rms, 64).Error
 }
 
 func GetUserMenus(ctx context.Context, userId int64) ([]*Menu, error) {
 	var menus []*Menu
-	if err := repository.DB().WithContext(ctx).Table("sys_menu").
+	if err := repository.DB(ctx).Table("sys_menu").
 		Select("sys_menu.*").
 		Joins("INNER JOIN sys_role_menu ON sys_menu.id = sys_role_menu.menu_id").
 		Joins("INNER JOIN sys_user_role ON sys_user_role.role_id = sys_role_menu.role_id").
@@ -109,4 +120,12 @@ func GetUserMenus(ctx context.Context, userId int64) ([]*Menu, error) {
 		return nil, err
 	}
 	return menus, nil
+}
+
+func UpdateMenu(ctx context.Context, menu Menu) error {
+	return repository.DB(ctx).Model(&Menu{}).Where("id = ?", menu.Id).Updates(menu).Error
+}
+
+func BatchDeleteMenu(ctx context.Context, menuIds []int64) error {
+	return repository.DB(ctx).Delete(&Menu{}, "id IN ?", menuIds).Error
 }

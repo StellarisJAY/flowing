@@ -1,13 +1,14 @@
 package migration
 
 import (
+	"context"
 	"flowing/internal/model/ai"
 	"flowing/internal/model/system"
 	"flowing/internal/repository"
 )
 
 func MigrateDB() {
-	db := repository.DB()
+	db := repository.DB(context.Background())
 	err := db.AutoMigrate(
 		&system.User{},
 		&system.Role{},

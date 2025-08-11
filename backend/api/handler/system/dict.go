@@ -5,6 +5,8 @@ import (
 	"flowing/global"
 	model "flowing/internal/model/system"
 	service "flowing/internal/service/system"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -64,4 +66,50 @@ func ListDictItemByCode(c *gin.Context) {
 		panic(err)
 	}
 	c.JSON(200, common.PageResp(list, int64(len(list))))
+}
+
+func UpdateDict(c *gin.Context) {
+	var req model.UpdateDictReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	if err := service.UpdateDict(c, req); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
+}
+
+func UpdateDictItem(c *gin.Context) {
+	var req model.UpdateDictItemReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	if err := service.UpdateDictItem(c, req); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
+}
+
+func DeleteDict(c *gin.Context) {
+	id := c.Query("id")
+	dictId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	if err := service.DeleteDict(c, dictId); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
+}
+
+func DeleteDictItem(c *gin.Context) {
+	id := c.Query("id")
+	dictItemId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	if err := service.DeleteDictItem(c, dictItemId); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
 }

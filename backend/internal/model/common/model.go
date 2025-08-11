@@ -17,3 +17,8 @@ func (m *BaseModel) BeforeCreate(tx *gorm.DB) error {
 	m.Id = repository.Snowflake().Generate().Int64()
 	return nil
 }
+
+func (m *BaseModel) BeforeUpdate(tx *gorm.DB) error {
+	m.UpdatedAt = time.Now()
+	return nil
+}

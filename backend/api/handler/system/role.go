@@ -5,6 +5,8 @@ import (
 	"flowing/global"
 	model "flowing/internal/model/system"
 	service "flowing/internal/service/system"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -42,23 +44,35 @@ func CreateUserRole(c *gin.Context) {
 	c.JSON(200, common.Ok())
 }
 
-func CreateRoleMenu(c *gin.Context) {
-	var req model.CreateRoleMenuReq
-	if err := c.ShouldBindJSON(&req); err != nil {
-		panic(global.ErrBadRequest(err))
-	}
-	if err := service.CreateRoleMenu(c, req); err != nil {
-		panic(err)
-	}
-	c.JSON(200, common.Ok())
-}
-
 func SaveRoleMenus(c *gin.Context) {
 	var req model.SaveRoleMenuReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		panic(global.ErrBadRequest(err))
 	}
 	if err := service.SaveRoleMenus(c, req); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
+}
+
+func UpdateRole(c *gin.Context) {
+	var req model.UpdateRoleReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	if err := service.UpdateRole(c, req); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
+}
+
+func DeleteRole(c *gin.Context) {
+	id := c.Query("id")
+	roleId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	if err := service.DeleteRole(c, roleId); err != nil {
 		panic(err)
 	}
 	c.JSON(200, common.Ok())

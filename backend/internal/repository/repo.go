@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"flowing/internal/config"
 	"flowing/internal/repository/db"
 	rdb "flowing/internal/repository/redis"
@@ -18,13 +19,18 @@ type Data struct {
 
 var data *Data
 
-func DB() *gorm.DB {
-	return data.db
+func DB(ctx context.Context) *gorm.DB {
+	d := ctx.Value("tx_db")
+	if d == nil {
+		d = data.db
+	}
+	return d.(*gorm.DB)
 }
 
-func Tx(fn func(*gorm.DB) error) error {
-	return data.db.Transaction(func(tx *gorm.DB) error {
-		return fn(tx)
+func Tx(ctx context.Context, fn func(context.Context) error) error {
+	return data.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		c := context.WithValue(ctx, "tx_db", tx)
+		return fn(c)
 	})
 }
 
