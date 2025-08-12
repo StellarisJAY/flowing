@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
-import { addRole, queryRoleList } from '@/views/system/role/api.js';
+import { addRole, queryRoleList, getRoleMenus, updateRole } from '@/views/system/role/api.js';
+import { message } from 'ant-design-vue';
 
 export const useRoleStore = defineStore('roleList', {
   state: ()=>({
@@ -76,6 +77,8 @@ export const useRoleStore = defineStore('roleList', {
       roleKey: [{ required: true, message: '请输入角色Key' }],
       description: [{ required: true, message: '请输入描述' }],
     },
+    roleMenus: [],
+    checkedKeys: [],
   }),
   actions: {
     async getRoleList(query){
@@ -87,14 +90,25 @@ export const useRoleStore = defineStore('roleList', {
         console.log(err);
       }
     },
-    async createRole(data) {
+    async saveRole(data, isUpdate) {
       try {
-        await addRole(data);
+        if (isUpdate) {
+          await updateRole(data);
+        } else {
+          await addRole(data);
+        }
+        message.success('保存成功');
         return true;
-      }catch (err) {
+      } catch (err) {
         console.log(err);
         return false;
       }
+    },
+    async getRoleMenus(query) {
+      const { data } = await getRoleMenus(query);
+      const { menus, checkedKeys } = data;
+      this.roleMenus = menus;
+      this.checkedKeys = checkedKeys;
     },
     resetRoleForm() {
       this.roleForm = {
@@ -105,6 +119,9 @@ export const useRoleStore = defineStore('roleList', {
     },
     getRoleDetail(id) {
       return this.roleList.find(item=>item.id === id);
+    },
+    setCheckedKeys(keys) {
+      this.checkedKeys = keys;
     }
   },
 });

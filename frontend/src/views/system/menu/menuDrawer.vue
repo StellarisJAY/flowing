@@ -21,21 +21,20 @@
   const visible = ref(false);
   const formState = computed(()=>menuStore.menuForm);
   const formRules = computed(()=>menuStore.menuFormRules);
-  const props = defineProps({
-    isUpdate: {
-      type: Boolean,
-      default: false,
-    },
-  });
   const emit = defineEmits(['submit-ok', 'submit-fail']);
+  const isUpdate = ref(false);
 
   const setVisible = (val) => {
     if (val) menuStore.getParentMenuOptions();
     visible.value = val;
   };
 
+  const setUpdate = (val) => {
+    isUpdate.value = val;
+  };
+
   const onSubmit = async (formState) => {
-    if (!props.isUpdate) {
+    if (isUpdate.value === false) {
       const ok = await menuStore.addMenu(formState);
       if (ok) {
         setVisible(false);
@@ -44,7 +43,13 @@
         emit('submit-fail');
       }
     } else {
-      // menuStore.updateMenu(formState);
+      const ok = await menuStore.updateMenu(formState);
+      if (ok) {
+        setVisible(false);
+        emit('submit-ok');
+      } else {
+        emit('submit-fail');
+      }
     }
   };
 
@@ -58,6 +63,7 @@
 
   defineExpose({
     setVisible,
+    setUpdate,
   });
 </script>
 

@@ -1,86 +1,74 @@
 <template>
   <Drawer :open="visible" @close="() => setVisible(false)" size="large" destroy-on-close>
     <div class="menu-tree">
-      <Tree checkable :checked-keys="checkedKeys" :tree-data="treeData"></Tree>
+      <Tree
+        checkable
+        :checked-keys="checkedKeys"
+        :selectable="false"
+        :tree-data="treeData"
+        :check-strictly="true"
+        @check="handleCheck"
+      />
     </div>
     <div class="actions">
       <Space>
-        <Button type="primary">保存</Button>
-        <Button>保存并关闭</Button>
+        <Button type="primary" @click="handleSubmit">保存</Button>
+        <Button @click="() => handleSubmit(true)">保存并关闭</Button>
       </Space>
     </div>
   </Drawer>
 </template>
 
 <script lang="js" setup>
-import { Drawer, Tree, Space, Button} from 'ant-design-vue';
-import { computed, ref } from 'vue';
-import { useMenuStore } from '@/views/system/menu/menuStore.js';
-import {cloneDeep} from 'lodash';
+  import { Drawer, Tree, Space, Button } from 'ant-design-vue';
+  import { computed, ref } from 'vue';
+  import { useRoleStore } from '@/views/system/role/roleStore.js';
+  import { saveRoleMenus } from '@/views/system/role/api.js';
 
-const menuStore = useMenuStore();
-const visible = ref(false);
-const role = ref();
+  const roleStore = useRoleStore();
+  const visible = ref(false);
+  const role = ref();
 
-const emit = defineEmits(['submit-ok', 'submit-fail']);
+  const emit = defineEmits(['submit-ok', 'submit-fail']);
+  const treeData = computed(() => roleStore.roleMenus);
+  const checkedKeys = computed(() => roleStore.checkedKeys);
 
-const setVisible = (val, record) => {
-  if (val) {
-    role.value = record;
-    menuStore.queryMenuList().then(mergeMenuTrees);
-  }
-  visible.value = val;
-};
-
-const treeData = ref([]);
-const checkedKeys = ref([]);
-
-const mergeMenuTrees = ()=>{
-  const menuTrees = cloneDeep(menuStore.menuList);
-  const roleMenus = role.value.menus;
-  const roleMenuMap = {};
-  checkedKeys.value = [];
-  const storeRoleMenu = (menus)=>{
-    menus.forEach(item=>{
-      roleMenuMap[item.id] = item;
-      if (item.children) {
-        storeRoleMenu(item.children);
-      }
-    });
+  const setVisible = (val, record) => {
+    if (val) {
+      role.value = record;
+      roleStore.getRoleMenus({ id: record.id });
+    }
+    visible.value = val;
   };
 
-  const setMenuChecked = (menus)=>{
-    menus.forEach(item=>{
-      item.checked = roleMenuMap[item.id] !== undefined;
-      item.title = item.menuName;
-      item.key = item.id;
-      if (item.checked) {
-        checkedKeys.value.push(item.id);
-      }
-      if (item.children) {
-        setMenuChecked(item.children);
-      }
-    });
+  const handleCheck = (e) => {
+    roleStore.setCheckedKeys(e);
   };
-  if (roleMenus && menuTrees) {
-    storeRoleMenu(roleMenus);
-    setMenuChecked(menuTrees);
-  }
-  treeData.value = menuTrees;
-}
+  const handleSubmit = async (close) => {
+    try {
+      await saveRoleMenus({
+        roleId: role.value.id,
+        menuIds: roleStore.checkedKeys.checked ? roleStore.checkedKeys.checked : roleStore.checkedKeys,
+      });
+      if (close === true) setVisible(false);
+      emit('submit-ok');
+    } catch {
+      emit('submit-fail');
+    }
+  };
 
-defineExpose({
-  setVisible,
-});
+  defineExpose({
+    setVisible,
+  });
 </script>
 
 <style scoped>
-.menu-tree {
-  height: 90%;
-  overflow: auto;
-  margin-bottom: 20px;
-}
-.actions {
-  text-align: right;
-}
+  .menu-tree {
+    height: 90%;
+    overflow: auto;
+    margin-bottom: 20px;
+  }
+  .actions {
+    text-align: right;
+  }
 </style>

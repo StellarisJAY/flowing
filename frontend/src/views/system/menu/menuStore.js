@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { createMenu, queryMenuTree } from '@/views/system/menu/api.js';
+import { createMenu, queryMenuTree, updateMenu } from '@/views/system/menu/api.js';
 import { message } from 'ant-design-vue';
 
 export const useMenuStore = defineStore('menuList', {
@@ -80,6 +80,16 @@ export const useMenuStore = defineStore('menuList', {
       try {
         await createMenu(menu);
         message.success('添加成功');
+        return true;
+      }catch (err) {
+        message.error(err);
+        return false;
+      }
+    },
+    async updateMenu(menu){
+      try {
+        await updateMenu(menu);
+        message.success('更新成功');
         return true;
       }catch (err) {
         message.error(err);

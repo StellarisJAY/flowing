@@ -7,8 +7,8 @@
         :rules="queryFormRules"
         submit-btn-text="查询"
         show-reset-btn
-        @submit="search"
-        @reset="resetQueryForm"
+        :submit-func="search"
+        :reset-func="()=>{resetQueryForm(); search();}"
       />
     </div>
     <div class="content">
@@ -85,6 +85,14 @@
   });
   const emit = defineEmits(['refresh']);
 
+  const search = (e) => {
+    const form = {
+      ...paginationForm.value,
+      ...e,
+    };
+    emit('refresh', form);
+  };
+
   // 分页请求
   const paginationForm = ref({
     page: props.pagination,
@@ -128,14 +136,6 @@
       }
     },
   });
-
-  const search = (e) => {
-    const form = {
-      ...paginationForm.value,
-      ...e,
-    };
-    emit('refresh', form);
-  };
 
   onMounted(() => search());
 </script>

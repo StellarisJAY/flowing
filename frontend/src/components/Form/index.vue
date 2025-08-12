@@ -29,13 +29,15 @@
           :tree-data="item.options ? item.options(formState) : []"
         />
         <InputNumber v-if="item.type === 'inputNumber'" v-model:value="formState[item.name]" />
+        <Switch v-if="item.type === 'switch'" v-model:checked="formState[item.name]" />
       </Form.Item>
     </div>
     <Form.Item>
-      <Space>
+      <Space v-if="!customButton || customButton === false">
         <Button type="primary" @click="submit">{{ submitBtnText }}</Button>
         <Button v-if="showResetBtn" @click="reset">重置</Button>
       </Space>
+      <slot name="buttons" v-else></slot>
     </Form.Item>
   </Form>
 </template>
@@ -50,6 +52,7 @@
     InputNumber,
     Select,
     TreeSelect,
+    Switch,
   } from 'ant-design-vue';
   import { ref, watch } from 'vue';
 
@@ -78,27 +81,50 @@
       type: Object,
       default: () => ({}),
     },
+    customButton: {
+      type: Boolean,
+      default: false,
+    },
+    // 表单提交调用的方法，返回值为提交是否成功
+    submitFunc: {
+      type: Function,
+      default: () => async () => {},
+    },
+    resetFunc: {
+      type: Function,
+      default: () => async () => {},
+    },
   });
 
   const formState = ref({ ...props.state });
-  watch(() => props.state, (newVal) => {
-    formState.value = { ...newVal };
-  });
+  watch(
+    () => props.state,
+    (newVal) => {
+      formState.value = { ...newVal };
+    }
+  );
   const emit = defineEmits(['submit', 'reset']);
   const formRef = ref();
 
   const submit = async () => {
     try {
       await formRef.value.validate();
-      emit('submit', formState.value);
+      return await props.submitFunc(formState.value);
     } catch (error) {
       console.log(error);
+      return false;
     }
   };
 
-  const reset = () => {
+  const reset = async () => {
+    await props.resetFunc();
     emit('reset');
   };
+
+  defineExpose({
+    submit,
+    reset,
+  });
 </script>
 
 <style scoped></style>
