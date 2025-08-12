@@ -53,6 +53,20 @@ type CreateUserRoleReq struct {
 	UserId int64 `json:"userId,string" binding:"required"`
 }
 
+type RoleMenuOption struct {
+	RoleId   int64             `json:"roleId,string"`
+	Name     string            `json:"title"`
+	Key      int64             `json:"key,string"`
+	ParentId int64             `json:"-"`
+	Checked  bool              `json:"checked"`
+	Children []*RoleMenuOption `json:"children"`
+}
+
+type RoleMenuResp struct {
+	Menus       []*RoleMenuOption `json:"menus"`
+	CheckedKeys []string          `json:"checkedKeys"`
+}
+
 func CreateRole(ctx context.Context, role *Role) error {
 	return repository.DB(ctx).Create(role).Error
 }

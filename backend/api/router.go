@@ -20,13 +20,13 @@ func InitRouter(e *gin.Engine) {
 	}
 	{
 		s := g.Group("/sys")
-		//s.Use(middleware.Auth())
+		s.Use(middleware.Auth())
 		s.GET("/menus", sys.GetUserMenus)                // 获取用户菜单
 		s.GET("/permissions", sys.GetUserAllPermissions) // 获取用户所有权限
 	}
 	{
 		u := g.Group("/user")
-		//u.Use(middleware.Auth())
+		u.Use(middleware.Auth())
 		u.GET("/list", system.ListUser)            // 获取用户列表
 		u.POST("/create", system.CreateUser)       // 创建用户
 		u.PUT("/update", system.UpdateUser)        // 更新用户
@@ -34,17 +34,18 @@ func InitRouter(e *gin.Engine) {
 	}
 	{
 		r := g.Group("/role")
-		//r.Use(middleware.Auth())
+		r.Use(middleware.Auth())
 		r.GET("/list", system.ListRole)         // 获取角色列表
 		r.POST("/create", system.CreateRole)    // 创建角色
 		r.POST("/grant", system.CreateUserRole) // 为用户授权角色
 		r.POST("/menus", system.SaveRoleMenus)  // 保存角色菜单
 		r.PUT("/update", system.UpdateRole)     // 更新角色
 		r.DELETE("/delete", system.DeleteRole)  // 删除角色
+		r.GET("/menus", system.GetRoleMenus)    // 获取角色菜单
 	}
 	{
 		m := g.Group("/menu")
-		//m.Use(middleware.Auth())
+		m.Use(middleware.Auth())
 		m.GET("/list", system.ListMenuTree)    // 获取菜单列表
 		m.POST("/create", system.CreateMenu)   // 创建菜单
 		m.PUT("/update", system.UpdateMenu)    // 更新菜单
@@ -52,13 +53,13 @@ func InitRouter(e *gin.Engine) {
 	}
 	{
 		p := g.Group("/ai/provider")
-		//p.Use(middleware.Auth())
+		p.Use(middleware.Auth())
 		p.POST("/create", ai.CreateProvider) // 创建模型供应商
 		p.GET("/list", ai.ListProvider)      // 获取模型供应商列表
 	}
 	{
 		d := g.Group("/dict")
-		//d.Use(middleware.Auth())
+		d.Use(middleware.Auth())
 		d.POST("/item/create", system.CreateDictItem)       // 创建字典项
 		d.POST("/create", system.CreateDict)                // 创建字典
 		d.GET("/list", system.ListDict)                     // 获取字典列表

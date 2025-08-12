@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"flowing/global"
+	"flowing/internal/model/common"
 	sysmodel "flowing/internal/model/system"
 	"flowing/internal/repository"
 	"flowing/internal/util"
@@ -46,10 +47,11 @@ func CreateUser(ctx context.Context, user sysmodel.CreateUserReq) error {
 
 func UpdateUser(ctx context.Context, user sysmodel.UpdateUserReq) error {
 	userModel := sysmodel.User{
-		NickName: user.NickName,
-		Email:    user.Email,
-		Phone:    user.Phone,
-		Status:   user.Status,
+		BaseModel: common.BaseModel{Id: user.Id},
+		NickName:  user.NickName,
+		Email:     user.Email,
+		Phone:     user.Phone,
+		Status:    user.Status,
 	}
 	return repository.Tx(ctx, func(c context.Context) error {
 		// 更新用户实体
@@ -78,7 +80,7 @@ func saveUserRole(ctx context.Context, userId int64, roleIds []string) error {
 		}
 	}
 	// 删除所有用户角色关联
-	err := repository.DB(ctx).Model(&sysmodel.UserRole{}).Where("user_id = ?", userId).Delete(&sysmodel.UserRole{}).Error
+	err := repository.DB(ctx).Delete(&sysmodel.UserRole{}, "user_id = ?", userId).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return global.NewError(500, "设置用户角色失败", err)
 	}

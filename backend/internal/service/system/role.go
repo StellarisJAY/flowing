@@ -6,6 +6,7 @@ import (
 	"flowing/internal/model/common"
 	sysmodel "flowing/internal/model/system"
 	"flowing/internal/repository"
+	"strconv"
 )
 
 func CreateRole(ctx context.Context, role sysmodel.CreateRoleReq) error {
@@ -22,12 +23,6 @@ func ListRole(ctx context.Context, query sysmodel.RoleQuery) ([]*sysmodel.Role, 
 	if err != nil {
 		return nil, 0, err
 	}
-	for _, role := range roles {
-		if len(role.Menus) == 0 {
-			continue
-		}
-		role.Menus = buildMenuTree(role.Menus, false)
-	}
 	return roles, total, nil
 }
 
@@ -39,38 +34,25 @@ func CreateUserRole(ctx context.Context, req sysmodel.CreateUserRoleReq) error {
 }
 
 func SaveRoleMenus(ctx context.Context, req sysmodel.SaveRoleMenuReq) error {
-	oldMenus := make(map[int64]struct{})
-	for _, menuId := range req.OldMenuIds {
-		oldMenus[menuId] = struct{}{}
-	}
-	newMenus := make(map[int64]struct{})
-	for _, menuId := range req.NewMenuIds {
-		newMenus[menuId] = struct{}{}
-	}
-	toCreate := make([]sysmodel.RoleMenu, 0)
-	for _, menuId := range req.NewMenuIds {
-		if _, ok := oldMenus[menuId]; !ok {
-			toCreate = append(toCreate, sysmodel.RoleMenu{
-				RoleId: req.RoleId,
-				MenuId: menuId,
-			})
+	roleMenus := make([]*sysmodel.RoleMenu, len(req.MenuIds))
+	for i, menuId := range req.MenuIds {
+		id, err := strconv.ParseInt(menuId, 10, 64)
+		if err != nil {
+			return global.NewError(500, "修改角色菜单失败", err)
+		}
+		roleMenus[i] = &sysmodel.RoleMenu{
+			RoleId: req.RoleId,
+			MenuId: id,
 		}
 	}
-	toDelete := make([]int64, 0)
-	for _, menuId := range req.OldMenuIds {
-		if _, ok := newMenus[menuId]; !ok {
-			toDelete = append(toDelete, menuId)
-		}
-	}
-
 	return repository.Tx(ctx, func(c context.Context) error {
-		err := repository.DB(c).Delete(sysmodel.RoleMenu{}, "role_id = ? and menu_id in ?", req.RoleId, toDelete).Error
+		err := repository.DB(c).Delete(&sysmodel.RoleMenu{}, "role_id = ?", req.RoleId).Error
 		if err != nil {
-			return global.NewError(500, "删除角色菜单失败", err)
+			return global.NewError(500, "修改角色菜单失败", err)
 		}
-		err = repository.DB(c).CreateInBatches(toCreate, 64).Error
+		err = repository.DB(c).Save(roleMenus).Error
 		if err != nil {
-			return global.NewError(500, "新增角色菜单失败", err)
+			return global.NewError(500, "修改角色菜单失败", err)
 		}
 		return nil
 	})
@@ -102,4 +84,54 @@ func DeleteRole(ctx context.Context, id int64) error {
 		}
 		return nil
 	})
+}
+
+func GetRoleMenus(ctx context.Context, roleId int64) (*sysmodel.RoleMenuResp, error) {
+	var roleMenus []*sysmodel.RoleMenu
+	err := repository.DB(ctx).Model(&sysmodel.RoleMenu{}).Where("role_id = ?", roleId).Find(&roleMenus).Error
+	if err != nil {
+		return nil, global.NewError(500, "获取角色菜单失败", err)
+	}
+
+	checkedKeys := make([]string, len(roleMenus))
+	for i, menu := range roleMenus {
+		checkedKeys[i] = strconv.FormatInt(menu.MenuId, 10)
+	}
+
+	// 获取系统所有菜单
+	allMenus, err := sysmodel.ListMenu(ctx, sysmodel.MenuQuery{})
+	if err != nil {
+		return nil, global.NewError(500, "获取菜单失败", err)
+	}
+	menus := make([]*sysmodel.RoleMenuOption, len(allMenus))
+	for i, menu := range allMenus {
+		menus[i] = &sysmodel.RoleMenuOption{
+			RoleId:   roleId,
+			Name:     menu.MenuName,
+			Key:      menu.Id,
+			ParentId: menu.ParentId,
+		}
+	}
+	// 构建菜单树
+	allMenuMap := make(map[int64]*sysmodel.RoleMenuOption)
+	for _, menu := range menus {
+		allMenuMap[menu.Key] = menu
+	}
+	result := make([]*sysmodel.RoleMenuOption, 0, len(menus))
+	for _, menu := range menus {
+		if menu.ParentId == 0 {
+			result = append(result, menu)
+			continue
+		}
+		parent, ok := allMenuMap[menu.ParentId]
+		if !ok {
+			result = append(result, menu)
+		} else {
+			parent.Children = append(parent.Children, menu)
+		}
+	}
+	return &sysmodel.RoleMenuResp{
+		Menus:       result,
+		CheckedKeys: checkedKeys,
+	}, nil
 }

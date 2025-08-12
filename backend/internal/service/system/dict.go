@@ -27,7 +27,7 @@ func CreateDictItem(ctx context.Context, req system.CreateDictItemReq) error {
 		ItemValue:   req.ItemValue,
 		Description: req.Description,
 		Sort:        req.Sort,
-		Enable:      req.Enable,
+		Enable:      *req.Enable,
 	}
 	if err := system.CreateDictItem(ctx, dictItem); err != nil {
 		return global.NewError(500, "新增字典值失败", err)
@@ -95,7 +95,7 @@ func UpdateDictItem(ctx context.Context, req system.UpdateDictItemReq) error {
 		ItemValue:   req.ItemValue,
 		Description: req.Description,
 		Sort:        req.Sort,
-		Enable:      req.Enable,
+		Enable:      *req.Enable,
 	}
 	if err := system.UpdateDictItem(ctx, dictItem); err != nil {
 		return global.NewError(500, "更新字典值失败", err)

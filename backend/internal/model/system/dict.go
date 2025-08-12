@@ -58,7 +58,7 @@ type CreateDictItemReq struct {
 	ItemValue   string `json:"itemValue" binding:"required"`
 	Description string `json:"description" binding:"required"`
 	Sort        int    `json:"sort" binding:"required"`
-	Enable      bool   `json:"enable" binding:"required"`
+	Enable      *bool  `json:"enable" binding:"required"`
 }
 
 type UpdateDictItemReq struct {
@@ -67,7 +67,7 @@ type UpdateDictItemReq struct {
 	ItemValue   string `json:"itemValue" binding:"required"`
 	Description string `json:"description" binding:"required"`
 	Sort        int    `json:"sort" binding:"required"`
-	Enable      bool   `json:"enable" binding:"required"`
+	Enable      *bool  `json:"enable" binding:"required"`
 }
 
 type UpdateDictReq struct {

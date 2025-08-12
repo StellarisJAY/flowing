@@ -76,9 +76,8 @@ type CreateRoleMenuReq struct {
 }
 
 type SaveRoleMenuReq struct {
-	RoleId     int64   `json:"roleId,string" binding:"required"`
-	NewMenuIds []int64 `json:"newMenuIds" binding:"required"`
-	OldMenuIds []int64 `json:"oldMenuIds" binding:"required"`
+	RoleId  int64    `json:"roleId,string" binding:"required"`
+	MenuIds []string `json:"menuIds" binding:"required"`
 }
 
 func CreateMenu(ctx context.Context, menu *Menu) error {

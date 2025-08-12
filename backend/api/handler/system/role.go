@@ -77,3 +77,16 @@ func DeleteRole(c *gin.Context) {
 	}
 	c.JSON(200, common.Ok())
 }
+
+func GetRoleMenus(c *gin.Context) {
+	id := c.Query("id")
+	roleId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	menus, err := service.GetRoleMenus(c, roleId)
+	if err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.OkWithData(menus))
+}
