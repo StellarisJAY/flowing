@@ -30,13 +30,13 @@
         />
         <InputNumber v-if="item.type === 'inputNumber'" v-model:value="formState[item.name]" />
         <Switch v-if="item.type === 'switch'" v-model:checked="formState[item.name]" />
-<!--        <ApiSelect-->
-<!--          v-if="item.type === 'apiSelect'"-->
-<!--          v-model:value="formState[item.name]"-->
-<!--          :api="item.componentProps.api"-->
-<!--          :params="item.componentProps.params"-->
-<!--          :placeholder="item.componentProps.placeholder"-->
-<!--        />-->
+        <ApiSelect
+          v-if="item.type === 'apiSelect'"
+          v-model:value="formState[item.name]"
+          :api="item.componentProps.api"
+          :params="item.componentProps.params"
+          :placeholder="item.componentProps.placeholder"
+        />
         <ApiTreeSelect
           v-if="item.type === 'apiTreeSelect'"
           v-model:value="formState[item.name]"
@@ -47,6 +47,7 @@
           :multiple="item.componentProps.multiple"
         />
         <Input.Password v-if="item.type === 'inputPassword'" v-model:value="formState[item.name]" />
+        <SelectRole v-if="item.type === 'selectRole'" v-model:value="formState[item.name]" />
       </Form.Item>
     </div>
     <Form.Item>
@@ -73,6 +74,8 @@
   } from 'ant-design-vue';
   import { ref, watch } from 'vue';
   import ApiTreeSelect from '@/components/Select/ApiTreeSelect.vue';
+  import SelectRole from '@/components/Role/SelectRole.vue';
+  import ApiSelect from '@/components/Select/ApiSelect.vue';
 
   const props = defineProps({
     formSchema: {

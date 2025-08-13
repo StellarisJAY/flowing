@@ -22,10 +22,10 @@
           :columns="columns"
           :data-source="records"
           :pagination="false"
-          :scroll="{ y: 500 }"
           :row-selection="rowSelection"
           size="small"
           bordered
+          :row-key="keyColumn"
         >
           <template #bodyCell="{ column, record }">
             <slot name="bodyCell" :column="column" :record="record"></slot>
@@ -55,7 +55,7 @@
 <script lang="js" setup>
   import { Table, Pagination, Space } from 'ant-design-vue';
   import Form from '@/components/Form/index.vue';
-  import { onMounted, ref } from 'vue';
+  import { computed, onMounted, ref, unref } from 'vue';
 
   const props = defineProps({
     columns: {
@@ -82,8 +82,16 @@
       type: Number,
       default: 0,
     },
+    keyColumn: {
+      type: String,
+      default: 'id',
+    }
   });
   const emit = defineEmits(['refresh']);
+  const selectedKeys = defineModel('selectedKeys', {
+    type: Array,
+    default: () => [],
+  });
 
   const search = (e) => {
     const form = {
@@ -115,26 +123,16 @@
   };
   resetQueryForm();
 
-  const rowSelection = ref({
-    checkStrictly: false,
-    selectedRowKeys: [],
-    onChange: (selectedRowKeys, selectedRows) => {
-      this.selectedRowKeys = selectedRowKeys;
-    },
-    onSelect: (record, selected, selectedRows) => {
-      if (selected) {
-        this.selectedRowKeys.push(record.id);
-      } else {
-        this.selectedRowKeys = this.selectedRowKeys.filter((key) => key !== record.id);
-      }
-    },
-    onSelectAll: (selected, selectedRows, changeRows) => {
-      if (selected) {
-        this.selectedRowKeys = selectedRows.map((row) => row.id);
-      } else {
-        this.selectedRowKeys = [];
-      }
-    },
+  const onSelectChange = (selectedRowKeys) => {
+    selectedKeys.value = selectedRowKeys;
+  };
+
+  const rowSelection = computed(() => {
+    return {
+      selectedRowKeys: unref(selectedKeys),
+      onChange: onSelectChange,
+      hideDefaultSelections: true,
+    };
   });
 
   onMounted(() => search());

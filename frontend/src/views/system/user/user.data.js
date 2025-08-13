@@ -91,6 +91,13 @@ export const userFormSchema = [
     placeholder: '请输入邮箱',
     defaultValue: '',
   },
+  {
+    name: 'roleIds',
+    label: '角色',
+    type: 'selectRole',
+    placeholder: '请选择角色',
+    defaultValue: [],
+  },
 ];
 
 export const userFormRules = {
