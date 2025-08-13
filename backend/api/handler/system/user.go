@@ -55,3 +55,16 @@ func DeleteUser(c *gin.Context) {
 	}
 	c.JSON(200, common.Ok())
 }
+
+func GetUserDetail(c *gin.Context) {
+	id := c.Query("id")
+	userId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	user, err := service.GetUserDetail(c, userId)
+	if err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.OkWithData(user))
+}

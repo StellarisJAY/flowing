@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { addUser, queryUserList, updateUser } from '@/api/system/user.api.js';
+import { addUser, getUserDetail, queryUserList, updateUser } from '@/api/system/user.api.js';
 import { message } from 'ant-design-vue';
 
 export const searchUserFormSchema = [
@@ -126,7 +126,18 @@ export const saveUser = async (data, isUpdate) => {
     message.error("操作失败");
     return false;
   }
-}
+};
+
+export const getDetail = async (id) => {
+  try {
+    const { data } = await getUserDetail({id});
+    return data;
+  }catch (err) {
+    console.error(err);
+    message.error("查询用户详情失败");
+    return null;
+  }
+};
 
 export const useUserStore = defineStore('userTable', {
   state: () => ({

@@ -16,7 +16,7 @@ type User struct {
 	Phone    string `json:"phone" gorm:"column:phone;type:varchar(255);not null;"`
 	Status   int    `json:"status" gorm:"column:status;type:int;default:1;"`
 
-	Roles []Role `json:"roles" gorm:"many2many:sys_user_role"`
+	RoleIds []string `json:"roleIds" gorm:"-"`
 }
 
 func (User) TableName() string {
@@ -61,7 +61,7 @@ func CreateUser(ctx context.Context, user *User) error {
 
 func GetUser(ctx context.Context, username string) (*User, error) {
 	var user User
-	err := repository.DB(ctx).Model(&User{}).Where("username = ?", username).Preload("Roles").First(&user).Error
+	err := repository.DB(ctx).Model(&User{}).Where("username = ?", username).First(&user).Error
 	return &user, err
 }
 
@@ -81,7 +81,7 @@ func ListUser(ctx context.Context, query UserQuery) ([]User, int64, error) {
 	if err := d.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	err := d.Scopes(db.Page(query.Page, query.PageNum, query.PageSize)).Preload("Roles").Find(&users).Error
+	err := d.Scopes(db.Page(query.Page, query.PageNum, query.PageSize)).Find(&users).Error
 	return users, total, err
 }
 

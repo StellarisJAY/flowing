@@ -32,7 +32,7 @@
 <script lang="js" setup>
   import Table from '@/components/Table/index.vue';
   import {
-    columns, saveUser,
+    columns, getDetail, saveUser,
     searchUserFormSchema,
     userFormRules,
     userFormSchema,
@@ -56,7 +56,7 @@
 
   const openDrawer = (isUpdate, record) => {
     if (isUpdate) {
-      userStore.setUserForm(record);
+      getDetail(record.id).then((data)=>userStore.setUserForm(data));
     } else {
       userStore.initUserForm();
     }

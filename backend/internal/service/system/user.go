@@ -163,3 +163,18 @@ func DeleteUser(ctx context.Context, userId int64) error {
 		return nil
 	})
 }
+
+func GetUserDetail(ctx context.Context, userId int64) (*sysmodel.User, error) {
+	var user *sysmodel.User
+	if err := repository.DB(ctx).Model(&sysmodel.User{}).Where("id = ?", userId).First(&user).Error; err != nil {
+		return nil, global.NewError(500, "获取用户详情失败", err)
+	}
+	err := repository.DB(ctx).
+		Model(&sysmodel.UserRole{}).
+		Where("user_id = ?", userId).
+		Pluck("role_id", &user.RoleIds).Error
+	if err != nil {
+		return nil, global.NewError(500, "获取用户详情失败", err)
+	}
+	return user, nil
+}

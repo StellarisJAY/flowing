@@ -31,6 +31,7 @@ func InitRouter(e *gin.Engine) {
 		u.POST("/create", system.CreateUser)       // 创建用户
 		u.PUT("/update", system.UpdateUser)        // 更新用户
 		u.DELETE("/delete/:id", system.DeleteUser) // 删除用户
+		u.GET("/detail", system.GetUserDetail)     // 获取用户详情
 	}
 	{
 		r := g.Group("/role")
