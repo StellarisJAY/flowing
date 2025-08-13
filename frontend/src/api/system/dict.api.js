@@ -13,3 +13,7 @@ export const updateDict = (data) => http.put('/dict/update', data);
 export const createDictItem = (data) => http.post('/dict/item/create', data);
 
 export const updateDictItem = (data) => http.put('/dict/item/update', data);
+
+export const apiDeleteDict = (data) => http.delete('/dict/delete', { params: data });
+
+export const apiDeleteDictItem = (data) => http.delete('/dict/item/delete', { params: data });

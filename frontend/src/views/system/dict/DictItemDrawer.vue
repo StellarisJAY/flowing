@@ -1,5 +1,5 @@
 <template>
-  <Drawer :open="visible" destroy-on-close size="large" @close="close">
+  <Drawer :open="visible" destroy-on-close size="large" @close="close" title="字典项配置">
     <Table
       :columns="columns"
       :records="records"
@@ -13,7 +13,10 @@
       <template #bodyCell="{ column, record }">
         <Space v-if="column.dataIndex === 'actions'">
           <Button type="link" @click="() => openFormModal(true, record)">编辑</Button>
-          <Button type="link">删除</Button>
+          <ConfirmButton text="删除" @confirm="async ()=> {
+            await deleteDictItem(record.id);
+            await refresh();
+          }" />
         </Space>
       </template>
     </Table>
@@ -33,22 +36,25 @@
 
 <script lang="js" setup>
   import { Drawer, Button, Space } from 'ant-design-vue';
-  import { useDictItemStore } from '@/views/system/dict/dictItem.store';
+  import {
+    columns, deleteDictItem, dictItemFormRules,
+    dictItemFormSchema,
+    queryFormSchema,
+    saveDictItem,
+    useDictItemStore,
+  } from '@/views/system/dict/dictItem.data.js';
   import Table from '@/components/Table/index.vue';
   import { computed, ref } from 'vue';
   import FormModal from '@/components/Modal/FormModal.vue';
+  import ConfirmButton from '@/components/Button/ConfirmButton.vue';
 
   const visible = ref(false);
   const dict = ref();
-  const columns = computed(() => dictItemStore.columns);
-  const records = computed(() => dictItemStore.dictItemList);
-  const queryFormSchema = computed(() => dictItemStore.queryFormSchema);
   const dictItemStore = useDictItemStore();
 
   const formModalRef = ref();
-  const dictItemFormSchema = computed(() => dictItemStore.dictItemFormSchema);
-  const dictItemFormRules = computed(() => dictItemStore.dictItemFormRules);
   const dictItemForm = computed(() => dictItemStore.dictItemForm);
+  const records = computed(()=>dictItemStore.dictItemList);
 
   const open = (record) => {
     visible.value = true;
@@ -81,7 +87,7 @@
   };
 
   const submit = async (data, isUpdate) => {
-    return await dictItemStore.saveDictItem(
+    return await saveDictItem(
       {
         ...data,
         dictId: dict.value.id,

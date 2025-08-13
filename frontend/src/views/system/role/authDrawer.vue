@@ -1,5 +1,11 @@
 <template>
-  <Drawer :open="visible" @close="() => setVisible(false)" size="large" destroy-on-close>
+  <Drawer
+    :open="visible"
+    @close="() => setVisible(false)"
+    size="large"
+    destroy-on-close
+    title="修改角色权限"
+  >
     <div class="menu-tree">
       <Tree
         checkable
@@ -22,8 +28,8 @@
 <script lang="js" setup>
   import { Drawer, Tree, Space, Button } from 'ant-design-vue';
   import { computed, ref } from 'vue';
-  import { useRoleStore } from '@/views/system/role/roleStore.js';
-  import { saveRoleMenus } from '@/views/system/role/api.js';
+  import { useRoleStore } from '@/views/system/role/role.data.js';
+  import { saveRoleMenus } from '@/api/system/role.api.js';
 
   const roleStore = useRoleStore();
   const visible = ref(false);
@@ -48,7 +54,9 @@
     try {
       await saveRoleMenus({
         roleId: role.value.id,
-        menuIds: roleStore.checkedKeys.checked ? roleStore.checkedKeys.checked : roleStore.checkedKeys,
+        menuIds: roleStore.checkedKeys.checked
+          ? roleStore.checkedKeys.checked
+          : roleStore.checkedKeys,
       });
       if (close === true) setVisible(false);
       emit('submit-ok');

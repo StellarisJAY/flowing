@@ -13,38 +13,52 @@
       <Space v-if="column.dataIndex === 'action'">
         <Button type="link" size="small" @click="() => openRoleDrawer(true, record)">编辑</Button>
         <Button type="link" size="small" @click="() => openAuthDrawer(record.id)">授权</Button>
-        <Button type="link" size="small" danger>删除</Button>
+        <ConfirmButton
+          text="删除"
+          @confirm="
+            async () => {
+              await deleteRole(record.id);
+              await refresh();
+            }
+          "
+        />
       </Space>
     </template>
   </Table>
   <FormDrawer
-     ref="roleFormDrawerRef"
+    ref="roleFormDrawerRef"
     :form-state="roleForm"
     :form-schema="roleFormSchema"
     :form-rules="roleFormRules"
     :submit="saveRole"
     @close="refresh"
+    title="角色"
   />
   <AuthDrawer ref="authDrawerRef"></AuthDrawer>
 </template>
 
 <script lang="js" setup>
   import Table from '@/components/Table/index.vue';
-  import { useRoleStore } from '@/views/system/role/roleStore.js';
+  import {
+    columns,
+    queryFormSchema,
+    roleFormRules,
+    roleFormSchema,
+    saveRole,
+    deleteRole,
+    useRoleStore,
+  } from '@/views/system/role/role.data.js';
   import { computed, ref } from 'vue';
   import { Button, Space } from 'ant-design-vue';
   import FormDrawer from '@/components/Drawer/FormDrawer.vue';
   import AuthDrawer from '@/views/system/role/authDrawer.vue';
+  import ConfirmButton from '@/components/Button/ConfirmButton.vue';
 
   const roleStore = useRoleStore();
-  const columns = computed(() => roleStore.columns);
   const records = computed(() => roleStore.roleList);
-  const queryFormSchema = computed(() => roleStore.queryFormSchema);
   const total = computed(() => roleStore.total);
 
-  const roleFormSchema = computed(() => roleStore.roleFormSchema);
   const roleForm = computed(() => roleStore.roleForm);
-  const roleFormRules = computed(() => roleStore.roleFormRules);
   const roleFormDrawerRef = ref();
 
   const openRoleDrawer = (isUpdate, record) => {
@@ -54,10 +68,6 @@
       roleStore.resetRoleForm();
     }
     roleFormDrawerRef.value.open(isUpdate);
-  };
-
-  const saveRole = async (data, isUpdate) => {
-    return await roleStore.saveRole(data, isUpdate);
   };
 
   const refresh = async (query) => {

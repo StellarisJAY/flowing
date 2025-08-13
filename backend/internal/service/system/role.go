@@ -71,15 +71,15 @@ func UpdateRole(ctx context.Context, req sysmodel.UpdateRoleReq) error {
 func DeleteRole(ctx context.Context, id int64) error {
 	return repository.Tx(ctx, func(c context.Context) error {
 		// 删除角色
-		if err := repository.DB(c).Delete(sysmodel.Role{}, "id = ?", id).Error; err != nil {
+		if err := repository.DB(c).Delete(&sysmodel.Role{}, "id = ?", id).Error; err != nil {
 			return global.NewError(500, "删除角色失败", err)
 		}
 		// 删除角色-用户关联
-		if err := repository.DB(c).Delete(sysmodel.UserRole{}, "role_id = ?", id).Error; err != nil {
+		if err := repository.DB(c).Delete(&sysmodel.UserRole{}, "role_id = ?", id).Error; err != nil {
 			return global.NewError(500, "删除角色失败", err)
 		}
 		// 删除角色-菜单关联
-		if err := repository.DB(c).Delete(sysmodel.RoleMenu{}, "role_id = ?", id).Error; err != nil {
+		if err := repository.DB(c).Delete(&sysmodel.RoleMenu{}, "role_id = ?", id).Error; err != nil {
 			return global.NewError(500, "删除角色失败", err)
 		}
 		return nil

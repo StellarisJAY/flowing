@@ -5,3 +5,5 @@ export const queryMenuTree = (params)=>http.get("/menu/list", {params: params});
 export const createMenu = (data)=>http.post("/menu/create", data)
 
 export const updateMenu = (data)=>http.put("/menu/update", data)
+
+export const apiDeleteMenu = (data) => http.delete('/menu/delete', {params: data});

@@ -1,5 +1,11 @@
 <template>
-  <Drawer :open="visible" @close="close" size="large" destroy-on-close>
+  <Drawer
+    :open="visible"
+    @close="close"
+    size="large"
+    destroy-on-close
+    :title="isUpdate === true ? `编辑${title}` : `新增${title}`"
+  >
     <Form
       :form-schema="formSchema"
       :rules="formRules"
@@ -7,7 +13,7 @@
       layout="vertical"
       custom-button
       ref="formRef"
-      :submit-func="async (state)=>await submit(state, isUpdate)"
+      :submit-func="async (state) => await submit(state, isUpdate)"
     >
       <template #buttons>
         <Space>
@@ -45,7 +51,11 @@
     },
     submit: {
       type: Function,
-      default: () => ()=>{},
+      default: () => () => {},
+    },
+    title: {
+      type: String,
+      default: '',
     },
   });
 
