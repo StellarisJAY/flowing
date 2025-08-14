@@ -2,6 +2,7 @@ package api
 
 import (
 	"flowing/api/handler/ai"
+	"flowing/api/handler/monitor"
 	"flowing/api/handler/sys"
 	"flowing/api/handler/system"
 	"flowing/api/middleware"
@@ -70,5 +71,10 @@ func InitRouter(e *gin.Engine) {
 		d.PUT("/item/update", system.UpdateDictItem)        // 更新字典项
 		d.DELETE("/delete", system.DeleteDict)              // 删除字典
 		d.DELETE("/item/delete", system.DeleteDictItem)     // 删除字典项
+	}
+	{
+		m := g.Group("/monitor")
+		m.Use(middleware.Auth())
+		m.GET("/performance", monitor.GetSystemMetrics) // 获取系统指标
 	}
 }

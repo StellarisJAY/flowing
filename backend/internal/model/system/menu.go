@@ -111,7 +111,7 @@ func CreateRoleMenu(ctx context.Context, rms []RoleMenu) error {
 func GetUserMenus(ctx context.Context, userId int64) ([]*Menu, error) {
 	var menus []*Menu
 	if err := repository.DB(ctx).Table("sys_menu").
-		Select("sys_menu.*").
+		Select("DISTINCT sys_menu.*").
 		Joins("INNER JOIN sys_role_menu ON sys_menu.id = sys_role_menu.menu_id").
 		Joins("INNER JOIN sys_user_role ON sys_user_role.role_id = sys_role_menu.role_id").
 		Where("sys_user_role.user_id = ?", userId).
