@@ -105,7 +105,9 @@
 
   .flowing-tab-content {
     height: 100%;
-    width: 90%;
+    width: 100%;
+    padding-left: 10px;
+    padding-right: 10px;
     margin: auto;
     left: 0;
     right: 0;

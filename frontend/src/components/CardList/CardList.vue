@@ -86,7 +86,7 @@
     margin-bottom: 20px;
   }
   .card-container {
-    padding: 10px;
+    padding-top: 10px;
     background-color: transparent;
     width: 100%;
     height: 100%;
