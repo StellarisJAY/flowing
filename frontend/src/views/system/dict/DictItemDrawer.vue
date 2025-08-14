@@ -8,7 +8,7 @@
       @refresh="refresh"
     >
       <template #tool-buttons>
-        <Button type="primary" @click="() => openFormModal(false)">新增字典项</Button>
+        <IconButton type="primary" @click="()=>openFormModal(false)" title="新增字典项" icon="PlusOutlined"/>
       </template>
       <template #bodyCell="{ column, record }">
         <Space v-if="column.dataIndex === 'actions'">
@@ -47,6 +47,7 @@
   import { computed, ref } from 'vue';
   import FormModal from '@/components/Modal/FormModal.vue';
   import ConfirmButton from '@/components/Button/ConfirmButton.vue';
+  import IconButton from '@/components/Button/IconButton.vue';
 
   const visible = ref(false);
   const dict = ref();

@@ -8,7 +8,12 @@
         submit-btn-text="查询"
         show-reset-btn
         :submit-func="search"
-        :reset-func="()=>{resetQueryForm(); search();}"
+        :reset-func="
+          () => {
+            resetQueryForm();
+            search();
+          }
+        "
       />
     </div>
     <div class="content">
@@ -41,7 +46,7 @@
           show-size-changer
           :show-total="(t) => `共${t}条`"
           @change="onPageChange"
-          style="max-width:50%"
+          style="max-width: 50%"
         >
           <template #buildOptionText="props">
             <span>{{ props.value }}条/页</span>
@@ -85,7 +90,7 @@
     keyColumn: {
       type: String,
       default: 'id',
-    }
+    },
   });
   const emit = defineEmits(['refresh']);
   const selectedKeys = defineModel('selectedKeys', {
@@ -115,9 +120,9 @@
 
   // 初始化搜索框表单
   const queryForm = ref({});
-  const resetQueryForm = ()=>{
+  const resetQueryForm = () => {
     queryForm.value = {};
-    props.queryFormSchema.forEach((item)=>{
+    props.queryFormSchema.forEach((item) => {
       queryForm.value[item.name] = item.defaultValue;
     });
   };
@@ -135,7 +140,7 @@
     };
   });
 
-  onMounted(() => search());
+  onMounted(()=>search());
 </script>
 
 <style scoped>

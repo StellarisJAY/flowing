@@ -3,6 +3,7 @@
     :tree-data="options"
     v-model:value="value"
     :multiple="multiple"
+    :disabled="disabled"
   />
 </template>
 
@@ -28,6 +29,10 @@ const props = defineProps({
     default: 'value',
   },
   multiple: {
+    type: Boolean,
+    default: false,
+  },
+  disabled: {
     type: Boolean,
     default: false,
   },

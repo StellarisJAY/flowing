@@ -8,7 +8,7 @@
     @refresh="refresh"
   >
     <template #tool-buttons>
-      <Button type="primary" @click="() => openDictDrawer(false)">新增字典</Button>
+      <IconButton type="primary" @click="() => openDictDrawer(false)" icon="PlusOutlined" title="新增字典" />
     </template>
     <template #bodyCell="{ column, record }">
       <Space v-if="column.dataIndex === 'actions'">
@@ -53,6 +53,7 @@
   import FormDrawer from '@/components/Drawer/FormDrawer.vue';
   import DictItemDrawer from '@/views/system/dict/DictItemDrawer.vue';
   import ConfirmButton from '@/components/Button/ConfirmButton.vue';
+  import IconButton from '@/components/Button/IconButton.vue';
 
   const dictStore = useDictStore();
 

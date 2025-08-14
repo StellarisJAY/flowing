@@ -34,7 +34,7 @@
   const isUpdate = ref(false);
   const formRef = ref();
   const visible = ref(false);
-  const emit = defineEmits(['submit', 'reset', 'open']);
+  const emit = defineEmits(['submit', 'reset', 'open', 'close']);
 
   defineProps({
     formSchema: {

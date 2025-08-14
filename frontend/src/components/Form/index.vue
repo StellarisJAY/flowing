@@ -6,54 +6,83 @@
         :name="item.name"
         :label="item.label"
       >
-        <Input
-          v-if="item.type === 'input'"
-          :placeholder="item.placeholder"
-          v-model:value="formState[item.name]"
-        />
-        <RadioGroup
-          v-if="item.type === 'radioGroup'"
-          v-model:value="formState[item.name]"
-          :options="item.options ? item.options(formState) : []"
-          option-type="button"
-          button-style="solid"
-        />
-        <Select
-          v-if="item.type === 'select'"
-          v-model:value="formState[item.name]"
-          :options="item.options ? item.options(formState) : []"
-        />
-        <TreeSelect
-          v-if="item.type === 'treeSelect'"
-          v-model:value="formState[item.name]"
-          :tree-data="item.options ? item.options(formState) : []"
-        />
-        <InputNumber v-if="item.type === 'inputNumber'" v-model:value="formState[item.name]" />
-        <Switch v-if="item.type === 'switch'" v-model:checked="formState[item.name]" />
-        <ApiSelect
-          v-if="item.type === 'apiSelect'"
-          v-model:value="formState[item.name]"
-          :api="item.componentProps.api"
-          :params="item.componentProps.params"
-          :placeholder="item.componentProps.placeholder"
-        />
-        <ApiTreeSelect
-          v-if="item.type === 'apiTreeSelect'"
-          v-model:value="formState[item.name]"
-          :api="item.componentProps.api"
-          :params="item.componentProps.params"
-          :label-field="item.componentProps.labelField"
-          :value-field="item.componentProps.valueField"
-          :multiple="item.componentProps.multiple"
-        />
-        <Input.Password v-if="item.type === 'inputPassword'" v-model:value="formState[item.name]" />
-        <SelectRole v-if="item.type === 'selectRole'" v-model:value="formState[item.name]" />
+        <slot v-if="item.slot === true" :name="`form-${item.name}`">
+        </slot>
+        <div v-else>
+          <Input
+            v-if="item.type === 'input'"
+            :placeholder="item.placeholder"
+            v-model:value="formState[item.name]"
+            :disabled="item.disabled && item.disabled(formState)"
+          />
+          <RadioGroup
+            v-if="item.type === 'radioGroup'"
+            v-model:value="formState[item.name]"
+            :options="item.options ? item.options(formState) : []"
+            option-type="button"
+            button-style="solid"
+            :disabled="item.disabled && item.disabled(formState)"
+          />
+          <Select
+            v-if="item.type === 'select'"
+            v-model:value="formState[item.name]"
+            :options="item.options ? item.options(formState) : []"
+            :disabled="item.disabled && item.disabled(formState)"
+          />
+          <TreeSelect
+            v-if="item.type === 'treeSelect'"
+            v-model:value="formState[item.name]"
+            :tree-data="item.options ? item.options(formState) : []"
+            :disabled="item.disabled && item.disabled(formState)"
+          />
+          <InputNumber
+            v-if="item.type === 'inputNumber'"
+            v-model:value="formState[item.name]"
+            :disabled="item.disabled && item.disabled(formState)"
+          />
+          <Switch
+            v-if="item.type === 'switch'"
+            v-model:checked="formState[item.name]"
+            :disabled="item.disabled && item.disabled(formState)"
+          />
+          <ApiSelect
+            v-if="item.type === 'apiSelect'"
+            v-model:value="formState[item.name]"
+            :api="item.componentProps.api"
+            :params="item.componentProps.params"
+            :placeholder="item.componentProps.placeholder"
+            :disabled="item.disabled && item.disabled(formState)"
+          />
+          <ApiTreeSelect
+            v-if="item.type === 'apiTreeSelect'"
+            v-model:value="formState[item.name]"
+            :api="item.componentProps.api"
+            :params="item.componentProps.params"
+            :label-field="item.componentProps.labelField"
+            :value-field="item.componentProps.valueField"
+            :multiple="item.componentProps.multiple"
+            :disabled="item.disabled && item.disabled(formState)"
+          />
+          <Input.Password
+            v-if="item.type === 'inputPassword'"
+            v-model:value="formState[item.name]"
+            :disabled="item.disabled && item.disabled(formState)"
+          />
+          <SelectRole
+            v-if="item.type === 'selectRole'"
+            v-model:value="formState[item.name]"
+            :disabled="item.disabled && item.disabled(formState)"
+            :multiple="item.componentProps.multiple"
+          />
+        </div>
       </Form.Item>
     </div>
     <Form.Item>
       <Space v-if="!customButton || customButton === false">
-        <Button type="primary" @click="submit">{{ submitBtnText }}</Button>
-        <Button v-if="showResetBtn" @click="reset">重置</Button>
+        <IconButton :icon="submitBtnIcon" :title="submitBtnText" @click="submit" type="primary"/>
+<!--        <Button type="primary" @click="submit">{{ submitBtnText }}</Button>-->
+        <IconButton :icon="resetBtnIcon" title="重置" @click="reset" />
+<!--        <Button v-if="showResetBtn" @click="reset">重置</Button>-->
       </Space>
       <slot name="buttons" v-else></slot>
     </Form.Item>
@@ -62,7 +91,6 @@
 
 <script lang="js" setup>
   import {
-    Button,
     Form,
     Input,
     Space,
@@ -76,6 +104,7 @@
   import ApiTreeSelect from '@/components/Select/ApiTreeSelect.vue';
   import SelectRole from '@/components/Role/SelectRole.vue';
   import ApiSelect from '@/components/Select/ApiSelect.vue';
+  import IconButton from '@/components/Button/IconButton.vue';
 
   const props = defineProps({
     formSchema: {
@@ -90,9 +119,17 @@
       type: String,
       default: '提交',
     },
+    submitBtnIcon: {
+      type: String,
+      default: 'SearchOutlined',
+    },
     showResetBtn: {
       type: Boolean,
       default: true,
+    },
+    resetBtnIcon: {
+      type: String,
+      default: 'RedoOutlined',
     },
     layout: {
       type: String,

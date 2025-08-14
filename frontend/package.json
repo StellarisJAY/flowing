@@ -11,8 +11,10 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@ant-design/icons-vue": "^7.0.1",
     "ant-design-vue": "^4.2.6",
     "axios": "^1.11.0",
+    "echarts": "^6.0.0",
     "lodash": "^4.17.21",
     "pinia": "^3.0.3",
     "vue": "^3.5.17",

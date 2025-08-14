@@ -29,11 +29,7 @@
         >
           <div class="flowing-tab-content">
             <router-view v-slot="{ Component }">
-              <transition>
-                <keep-alive>
-                  <component :is="Component" />
-                </keep-alive>
-              </transition>
+              <component :is="Component" />
             </router-view>
           </div>
         </Tabs.TabPane>

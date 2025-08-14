@@ -61,6 +61,7 @@ export const userFormSchema = [
     type: 'input',
     placeholder: '请输入用户名',
     defaultValue: '',
+    disabled: (formState)=>formState.id !== undefined,
   },
   {
     name: 'nickName',
@@ -97,6 +98,9 @@ export const userFormSchema = [
     type: 'selectRole',
     placeholder: '请选择角色',
     defaultValue: [],
+    componentProps: {
+      multiple: true,
+    },
   },
 ];
 

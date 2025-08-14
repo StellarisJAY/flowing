@@ -7,12 +7,25 @@
     label-field="roleName"
     value-field="id"
     v-model:value="value"
+    :disabled="disabled"
+    :multiple="multiple"
   />
 </template>
 <script setup lang="ts">
   import ModalSelect from '@/components/Select/ModalSelect.vue';
   import { queryRoleList } from '@/api/system/role.api';
   import { queryFormSchema } from '@/views/system/role/role.data';
+
+  defineProps({
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+    multiple: {
+      type: Boolean,
+      default: false,
+    },
+  });
 
   const columns = [
     {

@@ -48,7 +48,6 @@ const buildRoutes = (menus) => {
     });
     router.addRoute(item);
   });
-  console.log(router.getRoutes());
 };
 
 export const setupRouterGuard = () => {

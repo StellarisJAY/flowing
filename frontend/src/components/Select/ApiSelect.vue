@@ -5,6 +5,7 @@
     v-model:value="value"
     :placeholder="placeholder"
     :multiple="multiple"
+    :disabled="disabled"
   />
 </template>
 
@@ -34,6 +35,10 @@
       default: '请选择',
     },
     multiple: {
+      type: Boolean,
+      default: false,
+    },
+    disabled: {
       type: Boolean,
       default: false,
     },

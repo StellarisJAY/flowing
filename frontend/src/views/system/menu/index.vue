@@ -8,7 +8,7 @@
     @refresh="refresh"
   >
     <template #tool-buttons>
-      <Button type="primary" @click="() => openDrawer(false)">新增菜单</Button>
+      <IconButton type="primary" @click="() => openDrawer(false)" icon="PlusOutlined" title="新增菜单" />
     </template>
     <template #bodyCell="{ column, record }">
       <p v-if="column.dataIndex === 'type'">{{ getMenuTypeName(record.type) }}</p>
@@ -46,6 +46,7 @@
     columns, deleteMenu,
   } from '@/views/system/menu/menu.data.js';
   import ConfirmButton from '@/components/Button/ConfirmButton.vue';
+  import IconButton from '@/components/Button/IconButton.vue';
 
   const menuStore = useMenuStore();
   const tableColumns = columns;

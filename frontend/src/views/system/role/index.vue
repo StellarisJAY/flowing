@@ -7,7 +7,7 @@
     :total="total"
   >
     <template #tool-buttons>
-      <Button type="primary" @click="() => openRoleDrawer(false)">新增角色</Button>
+      <IconButton type="primary" @click="()=>openRoleDrawer(false)" icon="PlusOutlined" title="新增角色" />
     </template>
     <template #bodyCell="{ column, record }">
       <Space v-if="column.dataIndex === 'action'">
@@ -53,6 +53,7 @@
   import FormDrawer from '@/components/Drawer/FormDrawer.vue';
   import AuthDrawer from '@/views/system/role/authDrawer.vue';
   import ConfirmButton from '@/components/Button/ConfirmButton.vue';
+  import IconButton from '@/components/Button/IconButton.vue';
 
   const roleStore = useRoleStore();
   const records = computed(() => roleStore.roleList);

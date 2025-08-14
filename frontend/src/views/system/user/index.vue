@@ -9,7 +9,7 @@
     @refresh="refresh"
   >
     <template #tool-buttons>
-      <Button type="primary" @click="openDrawer(false)">新增用户</Button>
+      <IconButton type="primary" @click="openDrawer(false)" icon="PlusOutlined" title="新增用户" />
     </template>
     <template #bodyCell="{ column, record }">
       <Space v-if="column.dataIndex === 'actions'">
@@ -25,7 +25,7 @@
     :form-rules="userFormRules"
     :form-state="formState"
     :submit="saveUser"
-    @close="refresh"
+    @close="()=>refresh()"
   />
 </template>
 
@@ -42,6 +42,7 @@
   import { computed, ref } from 'vue';
   import FormDrawer from '@/components/Drawer/FormDrawer.vue';
   import ConfirmButton from '@/components/Button/ConfirmButton.vue';
+  import IconButton from '@/components/Button/IconButton.vue';
 
   const tableRef = ref();
   const formDrawerRef = ref();
