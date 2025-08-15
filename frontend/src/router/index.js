@@ -21,6 +21,17 @@ const router = createRouter({
       path: '/',
       redirect: '/home',
     },
+    {
+      path: '/error',
+      component: () => import('@/layouts/default/index.vue'),
+      children: [
+        {
+          name: '页面不存在',
+          path: '404',
+          component: () => import('@/views/sys/404/index.vue'),
+        }
+      ]
+    }
   ],
   strict: true,
   sensitive: true,
@@ -65,7 +76,12 @@ export const setupRouterGuard = () => {
     }
     if (permissionStore.isPermissionLoaded) {
       userStore.changeTabPanesOnRouting(to, false);
-      next();
+      // 判断路由中是否有目标路由
+      if (router.hasRoute(to.name)) {
+        next();
+        return;
+      }
+      next({ path: '/error/404', replace: true });
       return;
     }
     const menus = await permissionStore.getUserPermissions();
