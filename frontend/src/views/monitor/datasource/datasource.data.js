@@ -56,6 +56,13 @@ export const queryFormSchema = [
     name: 'code',
   },
   {
+    label: '主机',
+    type: 'input',
+    placeholder: '请输入主机',
+    defaultValue: '',
+    name: 'host',
+  },
+  {
     label: '数据源类型',
     type: 'select',
     placeholder: '请输入数据源类型',

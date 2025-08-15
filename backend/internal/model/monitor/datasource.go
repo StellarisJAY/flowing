@@ -37,6 +37,7 @@ type DatasourceQuery struct {
 	Name string         `json:"name" form:"name"`
 	Code string         `json:"code" form:"code"`
 	Type DatasourceType `json:"type" form:"type"`
+	Host string         `json:"host" form:"host"`
 }
 
 type CreateDatasourceReq struct {
@@ -95,6 +96,9 @@ func ListDatasource(ctx context.Context, query DatasourceQuery) ([]Datasource, i
 	}
 	if err := d.Count(&total).Error; err != nil {
 		return nil, 0, err
+	}
+	if query.Host != "" {
+		d = d.Where("host LIKE ?", "%"+query.Host+"%")
 	}
 	if err := d.Scopes(db.Page(query.Page, query.PageNum, query.PageSize)).Find(&list).Error; err != nil {
 		return nil, 0, err
