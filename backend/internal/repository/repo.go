@@ -5,8 +5,10 @@ import (
 	"flowing/internal/config"
 	"flowing/internal/repository/db"
 	rdb "flowing/internal/repository/redis"
+
 	"github.com/bwmarrin/snowflake"
 	"github.com/redis/go-redis/v9"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -59,4 +61,12 @@ func Init(c *config.Config) {
 		redis:     redisCli,
 		config:    c,
 	}
+}
+
+func PingMySQL(dsn string) error {
+	d, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return err
+	}
+	return d.Exec("SELECT 1").Error
 }

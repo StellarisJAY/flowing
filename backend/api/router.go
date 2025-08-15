@@ -76,5 +76,11 @@ func InitRouter(e *gin.Engine) {
 		m := g.Group("/monitor")
 		m.Use(middleware.Auth())
 		m.GET("/performance", monitor.GetSystemMetrics) // 获取系统指标
+
+		m.GET("/datasource/list", monitor.ListDatasource)        // 获取数据源列表
+		m.POST("/datasource/create", monitor.CreateDatasource)   // 创建数据源
+		m.PUT("/datasource/update", monitor.UpdateDatasource)    // 更新数据源
+		m.DELETE("/datasource/delete", monitor.DeleteDatasource) // 删除数据源
+		m.POST("/datasource/ping", monitor.PingDatasource)       // 测试连接
 	}
 }
