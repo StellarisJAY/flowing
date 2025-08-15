@@ -10,4 +10,5 @@ export const ViewMap = {
   "/views/system/role/index": ()=> import("@/views/system/role/index.vue"),
   "/views/system/dict/index": ()=> import("@/views/system/dict/index.vue"),
   "/views/agent/knowledge/index": () => import("@/views/agent/knowledge/index.vue"),
+  "/views/monitor/datasource/index": ()=> import("@/views/monitor/datasource/index.vue"),
 };

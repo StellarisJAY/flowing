@@ -6,7 +6,7 @@
         :name="item.name"
         :label="item.label"
       >
-        <slot v-if="item.slot === true" :name="`form-${item.name}`">
+        <slot v-if="item.slot === true" :name="`form-${item.name}`" :formState="formState">
         </slot>
         <div v-else>
           <Input
@@ -26,6 +26,7 @@
           <Select
             v-if="item.type === 'select'"
             v-model:value="formState[item.name]"
+            :placeholder="item.placeholder"
             :options="item.options ? item.options(formState) : []"
             :disabled="item.disabled && item.disabled(formState)"
           />
@@ -80,9 +81,7 @@
     <Form.Item>
       <Space v-if="!customButton || customButton === false">
         <IconButton :icon="submitBtnIcon" :title="submitBtnText" @click="submit" type="primary"/>
-<!--        <Button type="primary" @click="submit">{{ submitBtnText }}</Button>-->
         <IconButton :icon="resetBtnIcon" title="重置" @click="reset" />
-<!--        <Button v-if="showResetBtn" @click="reset">重置</Button>-->
       </Space>
       <slot name="buttons" v-else></slot>
     </Form.Item>

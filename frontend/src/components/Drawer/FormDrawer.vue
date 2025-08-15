@@ -22,6 +22,10 @@
           <Button @click="handleSaveAndClose" v-if="isUpdate === false" type="primary">保存</Button>
         </Space>
       </template>
+      <!-- 透传所有form item slots -->
+      <template v-for="(_, slotName) in $slots" #[slotName]="slotData">
+        <slot :name="slotName" v-bind="slotData" />
+      </template>
     </Form>
   </Drawer>
 </template>

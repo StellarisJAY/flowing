@@ -15,7 +15,12 @@
       layout="vertical"
       ref="formRef"
       :submit-func="async (state) => await submit(state, isUpdate)"
-    />
+    >
+      <!-- 透传所有form item slots -->
+      <template v-for="(_, slotName) in $slots" #[slotName]="slotData">
+        <slot :name="slotName" v-bind="slotData" />
+      </template>
+    </Form>
   </Modal>
 </template>
 
