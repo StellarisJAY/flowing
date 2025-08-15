@@ -29,9 +29,9 @@ const router = createRouter({
           name: '页面不存在',
           path: '404',
           component: () => import('@/views/sys/404/index.vue'),
-        }
-      ]
-    }
+        },
+      ],
+    },
   ],
   strict: true,
   sensitive: true,
@@ -66,7 +66,9 @@ export const setupRouterGuard = () => {
     const permissionStore = usePermissionStore();
     const userStore = useUserStore();
     const token = userStore.getToken();
+    // 没有token，跳转到登录页
     if (!token) {
+      // 防止死循环
       if (to.path === '/sys/login') {
         next();
         return;
@@ -74,24 +76,30 @@ export const setupRouterGuard = () => {
       next({ path: '/sys/login', replace: true });
       return;
     }
+    // 权限已加载，直接判断路由中是否有目标路由
     if (permissionStore.isPermissionLoaded) {
-      userStore.changeTabPanesOnRouting(to, false);
       // 判断路由中是否有目标路由
       if (router.hasRoute(to.name)) {
+        // 添加tab标签
+        userStore.changeTabPanesOnRouting(to, false);
         next();
         return;
       }
+      // 没有目标路由，跳转到404
       next({ path: '/error/404', replace: true });
       return;
     }
+    // 加载用户菜单权限
     const menus = await permissionStore.getUserPermissions();
     if (menus) {
+      // 构建路由
       buildRoutes(menus);
       permissionStore.setPermissionLoaded(true);
       permissionStore.setNavMenus(menus);
       // 重新加载路由后，需要重新导航到当前路由，否则会出现404
       next({ ...to, replace: true });
     } else {
+      // 没有菜单权限，跳转到登录页
       next({ path: '/sys/login', replace: true });
     }
   });
