@@ -35,15 +35,23 @@
         </Tabs.TabPane>
       </Tabs>
     </Layout.Content>
+    <FloatButton type="primary" tooltip="AI助手" @click="openAiHelperDrawer">
+      <template #icon>
+        <MessageOutlined />
+      </template>
+    </FloatButton>
+    <ChatDrawer ref="aiHelperDrawer" title="AI助手 (即将上线)" />
   </Layout>
 </template>
 
 <script lang="js" setup>
-  import { Layout, Menu, Tabs } from 'ant-design-vue';
-  import { computed, watch } from 'vue';
+  import { Layout, Menu, Tabs, FloatButton } from 'ant-design-vue';
+  import { computed, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
   import { usePermissionStore } from '@/stores/permission.js';
   import { useUserStore } from '@/stores/user.js';
+  import {MessageOutlined} from '@ant-design/icons-vue';
+  import ChatDrawer from '@/components/Chat/ChatDrawer.vue';
 
   const router = useRouter();
   const permissionStore = usePermissionStore();
@@ -51,6 +59,8 @@
   const menuItems = computed(() => permissionStore.navMenus);
   const tabPanes = computed(() => userStore.tabPanes);
   const activeTab = computed(() => userStore.activeTab);
+
+  const aiHelperDrawer = ref();
 
   watch(activeTab, (newVal) => {
     router.replace(newVal);
@@ -66,6 +76,10 @@
 
   const onTabClick = (key) => {
     router.replace(key);
+  };
+
+  const openAiHelperDrawer = () => {
+    aiHelperDrawer.value.open();
   };
 </script>
 
