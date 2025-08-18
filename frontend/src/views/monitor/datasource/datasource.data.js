@@ -1,5 +1,10 @@
 import { defineStore } from 'pinia';
-import { pingDatasource, queryDatasourceList } from '@/api/monitor/datasource.api.js';
+import {
+  createDatasource,
+  pingDatasource,
+  queryDatasourceList,
+  updateDatasource,
+} from '@/api/monitor/datasource.api.js';
 import { message } from 'ant-design-vue';
 
 export const columns = [
@@ -169,7 +174,7 @@ export const datasourceFormRules = {
 export const testConnection = async (req) => {
   try {
     const { data } = await pingDatasource(req);
-    return `连接成功，延迟${data}ms`
+    return `连接成功，延迟${data}ms`;
   } catch {
     return '连接失败';
   }
@@ -190,6 +195,20 @@ export const useDatasourceStore = defineStore('monitor_datasource', {
         this.setTotal(total);
       } catch {
         message.error('获取数据源列表失败');
+      }
+    },
+    async save(data, isUpdate) {
+      try {
+        if (isUpdate) {
+          await updateDatasource(data);
+        } else {
+          await createDatasource(data);
+        }
+        message.success('操作成功');
+        return true;
+      } catch {
+        message.error('操作失败');
+        return false;
       }
     },
     setRecords(records) {

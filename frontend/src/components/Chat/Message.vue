@@ -26,9 +26,15 @@ defineProps({
 </script>
 
 <style scoped>
+/**
+ * 消息组件
+ */
 .message-container {
   max-height: 50%;
 }
+/**
+ * 消息组件-头像
+ */
 .avatar {
   width: 30px;
   height: 30px;
@@ -39,6 +45,9 @@ defineProps({
   justify-content: center;
   font-size: 12px;
 }
+/**
+ * 消息组件-消息气泡
+ */
 .message-bubble {
   padding: 10px;
   border-radius: 10px;
@@ -50,6 +59,9 @@ defineProps({
   overflow: auto;
 }
 
+/**
+ * 消息组件-消息气泡-滚动条
+ */
 .message-bubble::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -65,6 +77,9 @@ defineProps({
   background-color: #A1A1A1FF;
 }
 
+/**
+ * 消息组件-用户消息
+ */
 .message-container-user {
   display: flex;
   flex-direction: column;
@@ -72,6 +87,9 @@ defineProps({
   gap: 10px;
   align-items: flex-end;
 }
+/**
+ * 消息组件-助手消息
+ */
 .message-container-assistant {
   display: flex;
   flex-direction: column;

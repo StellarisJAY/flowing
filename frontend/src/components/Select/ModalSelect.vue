@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <Space direction="horizontal">
+  <div style="width: 100%">
+    <div style="display: flex; justify-content: flex-start; gap: 10px">
       <Select
         :value="value"
         :disabled="disabled"
@@ -10,10 +10,10 @@
         :open="false"
         @change="handleChange"
       />
-      <Button type="primary" @click="openModal">选择</Button>
-    </Space>
-    <FormItem>
-      <Modal :title="title" :open="visible" :width="1000" @cancel="closeModal" @ok="handleOk">
+      <Button type="primary" @click="openModal" :disabled="disabled">选择</Button>
+    </div>
+    <Form v-if="!disabled">
+      <Modal :title="title" :open="visible" @cancel="closeModal" @ok="handleOk" width="100%" destroy-on-close>
         <Table
           :columns="columns"
           :pagination="true"
@@ -22,15 +22,16 @@
           :total="total"
           :records="records"
           v-model:selected-keys="selectedKeys"
+          :select-multiple="multiple"
         />
       </Modal>
-    </FormItem>
+    </Form>
   </div>
 </template>
 
 <script setup lang="js">
   import Table from '@/components/Table/index.vue';
-  import { Modal, Select, Button, Space, message, FormItem } from 'ant-design-vue';
+  import { Modal, Select, Button, message, Form } from 'ant-design-vue';
   import { onMounted, ref } from 'vue';
 
   const props = defineProps({
@@ -45,6 +46,10 @@
     api: {
       type: Function,
       default: () => {},
+    },
+    params: {
+      type: Object,
+      default: () => ({}),
     },
     queryFormSchema: {
       type: Array,
@@ -81,7 +86,7 @@
 
   const refresh = async (query) => {
     try {
-      const res = await props.api(query);
+      const res = await props.api({ ...props.params, ...query });
       total.value = res.total;
       records.value = res.data;
       options.value = records.value.map((item) => ({
@@ -89,17 +94,16 @@
         value: item[props.valueField],
       }));
     } catch (err) {
-      console.log(err);
       message.error(err);
     }
   };
 
   const openModal = () => {
     visible.value = true;
-    if (value.value instanceof String) {
-      selectedKeys.value = [value.value];
-    } else {
+    if (value.value instanceof Array) {
       selectedKeys.value = value.value;
+    } else {
+      selectedKeys.value = [value.value];
     }
   };
 

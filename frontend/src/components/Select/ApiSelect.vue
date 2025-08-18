@@ -16,7 +16,7 @@
   const props = defineProps({
     api: {
       type: Function,
-      default: () => () => {},
+      default: () => async () => {},
     },
     params: {
       type: Object,
@@ -45,7 +45,7 @@
   });
 
   const value = defineModel('value', {
-    type: Array | String,
+    type: [Array, String],
     default: () => [],
   });
 

@@ -29,12 +29,20 @@
     :form-rules="datasourceFormRules"
     :form-state="formState"
     title="数据源"
+    :submit="submit"
+    @close="refresh"
   >
-    <template #form-port="{formState}">
+    <template #form-port="{ formState }">
       <Space>
         <InputNumber v-model:value="formState.port" :min="0" :max="65535" />
-        <Button type="primary" @click="()=>testConn(formState)">测试连接</Button>
-        {{connState}}
+        <Button
+          type="primary"
+          @click="() => testConn(formState)"
+          :loading="connLoading"
+          :disabled="connLoading"
+          >测试连接</Button
+        >
+        {{ connState }}
       </Space>
     </template>
   </FormDrawer>
@@ -50,11 +58,12 @@
     columns,
     datasourceFormRules,
     datasourceFormSchema,
-    queryFormSchema, testConnection,
+    queryFormSchema,
+    testConnection,
     useDatasourceStore,
   } from '@/views/monitor/datasource/datasource.data.js';
   import FormDrawer from '@/components/Drawer/FormDrawer.vue';
-  import {InputNumber} from 'ant-design-vue';
+  import { InputNumber } from 'ant-design-vue';
 
   const drawerRef = ref();
   const datasourceStore = useDatasourceStore();
@@ -62,6 +71,7 @@
   const total = computed(() => datasourceStore.total);
   const formState = computed(() => datasourceStore.formState);
   const connState = ref('');
+  const connLoading = ref(false);
 
   const refresh = async (query) => {
     await datasourceStore.getDatasourceList(query);
@@ -77,9 +87,16 @@
     drawerRef.value.open(isUpdate);
   };
 
+  const submit = async (data, isUpdate) => {
+    return await datasourceStore.save(data, isUpdate);
+  };
+
   const testConn = async (data) => {
+    connState.value = '';
+    connLoading.value = true;
     connState.value = await testConnection(data);
-  }
+    connLoading.value = false;
+  };
 </script>
 
 <style scoped></style>

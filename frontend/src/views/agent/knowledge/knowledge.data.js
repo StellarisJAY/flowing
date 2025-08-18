@@ -16,17 +16,26 @@ export const knowledgeFormSchema = [
     defaultValue: '',
   },
   {
+    name: 'datasource',
+    label: '数据源(配置后不可修改)',
+    type: 'datasourceSelect',
+    placeholder: '请选择数据源',
+    defaultValue: '',
+    componentProps: {
+      datasourceType: 'milvus',
+    },
+    disabled: (formState) => formState.id !== undefined,
+  },
+  {
     name: 'embeddingModel',
-    label: '嵌入模型',
-    type: 'select',
+    label: '嵌入模型(配置后不可修改)',
+    type: 'modelSelect',
     placeholder: '请选择嵌入模型',
     defaultValue: '',
-    options: () => [
-      {
-        label: 'OpenAI',
-        value: 'openai',
-      },
-    ],
+    componentProps: {
+      modelType: 'embedding',
+    },
+    disabled: (formState) => formState.id !== undefined,
   },
   {
     name: 'enable',
@@ -38,10 +47,15 @@ export const knowledgeFormSchema = [
 ];
 
 export const knowledgeFormRules = {
-  name: [{ required: true, message: '请输入知识库名称', trigger: 'blur' }],
-  description: [{ required: true, message: '请输入知识库描述', trigger: 'blur' }],
-  embeddingModel: [{ required: true, message: '请选择嵌入模型', trigger: 'blur' }],
-  enable: [{ required: true, message: '请选择是否启用', trigger: 'change' }],
+  name: [{ required: true, message: '请输入知识库名称', trigger: 'submit' }],
+  description: [{ required: true, message: '请输入知识库描述', trigger: 'submit' }],
+  embeddingModel: [
+    { required: true, message: '请选择嵌入模型(请先在模型管理中配置嵌入模型)', trigger: 'submit' },
+  ],
+  enable: [{ required: true, message: '请选择是否启用', trigger: 'submit' }],
+  datasource: [
+    { required: true, message: '请选择数据源(请先在数据源管理中配置向量库)', trigger: 'submit' },
+  ],
 };
 
 export const searchFormSchema = [

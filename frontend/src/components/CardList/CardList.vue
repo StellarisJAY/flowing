@@ -19,7 +19,7 @@
             justifyContent: 'center',
             alignItems: 'center',
           }"
-          @click="() => emits('add')"
+          @click="(e) => emits('add')"
         >
           <div class="add-card-content">
             <PlusOutlined />
@@ -27,8 +27,8 @@
         </Card>
       </div>
       <div class="card-cell" v-for="item in records" :key="item.id">
-        <Card class="card-item" :body-style="itemBodyStyle">
-          <slot name="bodyCell" :item="item" />
+        <Card class="card-item" :body-style="itemBodyStyle" @click="() => emits('item-click', item)">
+          <slot name="bodyCell" :item="item"/>
           <template #actions>
             <slot name="actions" :item="item" />
           </template>
@@ -42,9 +42,9 @@
   import { Card } from 'ant-design-vue';
   import Form from '@/components/Form/index.vue';
   import { PlusOutlined } from '@ant-design/icons-vue';
-  import { ref } from 'vue';
+  import { onMounted, ref } from 'vue';
 
-  defineProps({
+  const props = defineProps({
     useAddCard: {
       type: Boolean,
       default: false,
@@ -66,13 +66,21 @@
       default: () => () => {},
     },
   });
-  const emits = defineEmits(['add']);
+  const emits = defineEmits(['add', 'item-click']);
 
   const itemBodyStyle = {
     height: '80%',
     width: '100%',
   };
-  const queryForm = ref({});
+  const queryForm = ref({
+    page: false,
+    pageSize: 10,
+    pageNum: 1,
+  });
+
+  onMounted(async () => {
+    await props.search(queryForm.value);
+  });
 </script>
 
 <style scoped>

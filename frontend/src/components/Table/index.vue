@@ -91,6 +91,10 @@
       type: String,
       default: 'id',
     },
+    selectMultiple: {
+      type: Boolean,
+      default: false,
+    },
   });
   const emit = defineEmits(['refresh']);
   const selectedKeys = defineModel('selectedKeys', {
@@ -134,13 +138,14 @@
 
   const rowSelection = computed(() => {
     return {
+      type: props.selectMultiple ? 'checkbox' : 'radio',
       selectedRowKeys: unref(selectedKeys),
       onChange: onSelectChange,
       hideDefaultSelections: true,
     };
   });
 
-  onMounted(()=>search());
+  onMounted(() => search());
 </script>
 
 <style scoped>
@@ -156,8 +161,8 @@
     background-color: white;
     width: 100%;
     height: 85%;
-    padding: 20px;
     margin-top: 20px;
+    padding: 10px;
   }
 
   .tool-bar {
@@ -167,6 +172,7 @@
 
   .table-container {
     height: 85%;
+    width: 100%;
   }
 
   .pagination {

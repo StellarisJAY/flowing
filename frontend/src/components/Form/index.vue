@@ -75,6 +75,18 @@
             :disabled="item.disabled && item.disabled(formState)"
             :multiple="item.componentProps.multiple"
           />
+          <ModelSelect
+            v-if="item.type === 'modelSelect'"
+            v-model:value="formState[item.name]"
+            :modelType="item.componentProps.modelType"
+            :disabled="item.disabled && item.disabled(formState)"
+          />
+          <DatasourceSelect
+            v-if="item.type === 'datasourceSelect'"
+            v-model:value="formState[item.name]"
+            :datasourceType="item.componentProps.datasourceType"
+            :disabled="item.disabled && item.disabled(formState)"
+          />
         </div>
       </Form.Item>
     </div>
@@ -104,6 +116,8 @@
   import SelectRole from '@/components/Role/SelectRole.vue';
   import ApiSelect from '@/components/Select/ApiSelect.vue';
   import IconButton from '@/components/Button/IconButton.vue';
+  import ModelSelect from '@/components/AIModel/ModelSelect.vue';
+  import DatasourceSelect from '@/components/Datasource/DatasourceSelect.vue';
 
   const props = defineProps({
     formSchema: {

@@ -63,7 +63,6 @@
   };
 
   const refresh = async (query) => {
-    console.log(query);
     await dictItemStore.getDictItemList({
       ...query,
       dictId: dict.value.id,
