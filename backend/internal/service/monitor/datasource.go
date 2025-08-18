@@ -75,7 +75,9 @@ func PingDatasource(ctx context.Context, model monitor.PingDatasourceReq) (int64
 			return 0, global.NewError(500, "连接数据源失败", err)
 		}
 	case monitor.DatasourceTypeMilvus:
-	// TODO 连接Milvus
+		if err := repository.PingMilvus(fmt.Sprintf("%s:%d", model.Host, model.Port), model.Username, model.Password, model.Database); err != nil {
+			return 0, global.NewError(500, "连接数据源失败", err)
+		}
 	default:
 		return 0, global.NewError(500, "不支持的数据源类型", nil)
 	}

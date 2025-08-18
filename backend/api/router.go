@@ -60,6 +60,14 @@ func InitRouter(e *gin.Engine) {
 		p.GET("/list", ai.ListProvider)      // 获取模型供应商列表
 	}
 	{
+		m := g.Group("/ai/model")
+		m.Use(middleware.Auth())
+		m.POST("/create", ai.CreateProviderModel)   // 创建模型
+		m.GET("/list", ai.ListProviderModel)        // 获取模型列表
+		m.DELETE("/delete", ai.DeleteProviderModel) // 删除模型
+		m.PUT("/update", ai.UpdateProviderModel)    // 更新模型
+	}
+	{
 		d := g.Group("/dict")
 		d.Use(middleware.Auth())
 		d.POST("/item/create", system.CreateDictItem)       // 创建字典项

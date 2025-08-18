@@ -20,11 +20,11 @@ type Datasource struct {
 	Name        string         `json:"name" gorm:"column:name;type:varchar(128);not null;"`               // 数据源名称
 	Code        string         `json:"code" gorm:"column:code;type:varchar(128);not null;unique;"`        // 数据源编码 唯一
 	Type        DatasourceType `json:"type" gorm:"column:type;type:varchar(32);not null;"`                // 数据源类型
-	Username    string         `json:"username" gorm:"column:username;type:varchar(128);not null;"`       // 数据源用户名
-	Password    string         `json:"password" gorm:"column:password;type:varchar(128);not null;"`       // 数据源密码
+	Username    *string        `json:"username" gorm:"column:username;type:varchar(128);not null;"`       // 数据源用户名
+	Password    *string        `json:"password" gorm:"column:password;type:varchar(128);not null;"`       // 数据源密码
 	Host        string         `json:"host" gorm:"column:host;type:varchar(255);not null"`                // 数据源主机
 	Port        int            `json:"port" gorm:"column:port;type:int(11);not null;"`                    // 数据源端口
-	Database    string         `json:"database" gorm:"column:database;type:varchar(128);not null;"`       // 数据源数据库
+	Database    *string        `json:"database" gorm:"column:database;type:varchar(128);not null;"`       // 数据源数据库
 	Description string         `json:"description" gorm:"column:description;type:varchar(255);not null;"` // 数据源描述
 }
 
@@ -44,11 +44,11 @@ type CreateDatasourceReq struct {
 	Name        string         `json:"name" binding:"required"`
 	Code        string         `json:"code" binding:"required"`
 	Type        DatasourceType `json:"type" binding:"required"`
-	Username    string         `json:"username"`
-	Password    string         `json:"password"`
+	Username    *string        `json:"username"`
+	Password    *string        `json:"password"`
 	Host        string         `json:"host" binding:"required"`
 	Port        int            `json:"port" binding:"required"`
-	Database    string         `json:"database"`
+	Database    *string        `json:"database"`
 	Description string         `json:"description" binding:"required"`
 }
 
@@ -56,11 +56,11 @@ type UpdateDatasourceReq struct {
 	ID          int64          `json:"id,string" binding:"required"`
 	Name        string         `json:"name" binding:"required"`
 	Type        DatasourceType `json:"type" binding:"required"`
-	Username    string         `json:"username"`
-	Password    string         `json:"password"`
+	Username    *string        `json:"username"`
+	Password    *string        `json:"password"`
 	Host        string         `json:"host" binding:"required"`
 	Port        int            `json:"port" binding:"required"`
-	Database    string         `json:"database"`
+	Database    *string        `json:"database"`
 	Description string         `json:"description" binding:"required"`
 }
 

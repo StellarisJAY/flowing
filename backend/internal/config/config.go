@@ -27,4 +27,11 @@ type Config struct {
 	Jwt struct {
 		Secret string `yaml:"secret"`
 	} `yaml:"jwt"`
+	FileStore string `yaml:"fileStore"`
+	Minio     struct {
+		Endpoint  string `yaml:"endpoint"`
+		AccessKey string `yaml:"accessKey"`
+		SecretKey string `yaml:"secretKey"`
+		Bucket    string `yaml:"bucket"`
+	} `yaml:"minio"`
 }
