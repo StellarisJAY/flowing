@@ -112,7 +112,11 @@
   };
 
   const handleOk = () => {
-    value.value = selectedKeys.value;
+    if (props.multiple) {
+      value.value = selectedKeys.value;
+    } else {
+      value.value = selectedKeys.value[0];
+    }
     closeModal();
   };
 
