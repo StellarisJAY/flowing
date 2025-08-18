@@ -1,4 +1,6 @@
 import { defineStore } from 'pinia';
+import { addKnowledge, queryKnowledgeList, updateKnowledge } from '@/api/ai/knowledge.api.js';
+import { message } from 'ant-design-vue';
 
 export const knowledgeFormSchema = [
   {
@@ -16,7 +18,7 @@ export const knowledgeFormSchema = [
     defaultValue: '',
   },
   {
-    name: 'datasource',
+    name: 'datasourceId',
     label: '数据源(配置后不可修改)',
     type: 'datasourceSelect',
     placeholder: '请选择数据源',
@@ -70,38 +72,34 @@ export const searchFormSchema = [
 
 export const useKnowledgeStore = defineStore('agent_knowledge', {
   state: () => ({
-    records: [
-      {
-        id: 1,
-        name: '知识库1',
-        description: '知识库1描述',
-        embeddingModel: 'openai',
-        enable: true,
-      },
-      {
-        id: 2,
-        name: '知识库2',
-        description: '知识库2描述',
-        embeddingModel: 'openai',
-        enable: true,
-      },
-      {
-        id: 3,
-        name: '知识库3',
-        description: '知识库3描述',
-        embeddingModel: 'openai',
-        enable: true,
-      },
-    ],
+    records: [],
     total: 0,
-    knowledgeForm: {
-      name: '',
-      description: '',
-      embeddingModel: '',
-      enable: false,
-    },
+    knowledgeForm: {},
   }),
   actions: {
+    async list(query) {
+      try {
+        const res = await queryKnowledgeList(query);
+        this.records = res.data;
+        this.total = res.total;
+      } catch  {
+        message.error('获取知识库列表失败');
+      }
+    },
+    async saveKnowledgeBase(record, isUpdate) {
+      try {
+        if (isUpdate) {
+          await updateKnowledge(record);
+        } else {
+          await addKnowledge(record);
+        }
+        message.success('操作成功');
+        return true;
+      } catch  {
+        message.error('操作失败');
+        return false;
+      }
+    },
     initKnowledgeForm() {
       this.knowledgeForm = {
         name: '',

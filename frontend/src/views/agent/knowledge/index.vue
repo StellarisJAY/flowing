@@ -21,6 +21,8 @@
     :form-state="formState"
     :form-rules="knowledgeFormRules"
     title="知识库"
+    :submit="submit"
+    @close="search"
   />
 </template>
 <script setup lang="js">
@@ -48,8 +50,12 @@
     }
     formModalRef.value.open(isUpdate);
   };
-  const search = async () => {
-    console.log('search');
-    return true;
+
+  const search = async (query) => {
+    await knowledgeStore.list(query);
   };
+
+  const submit = async (data, isUpdate) => {
+    return await knowledgeStore.saveKnowledgeBase(data, isUpdate);
+  }
 </script>

@@ -30,6 +30,7 @@ func CreateKnowledgeBase(ctx context.Context, req kb.CreateKnowledgeBaseReq) err
 		Description:    req.Description,
 		DatasourceId:   req.DatasourceId,
 		EmbeddingModel: req.EmbeddingModel,
+		Enable:         req.Enable,
 	}
 	return repository.Tx(ctx, func(c context.Context) error {
 		if err := kb.CreateKnowledgeBase(c, model); err != nil {
@@ -47,6 +48,7 @@ func UpdateKnowledgeBase(ctx context.Context, req kb.UpdateKnowledgeBaseReq) err
 		},
 		Name:        req.Name,
 		Description: req.Description,
+		Enable:      req.Enable,
 	})
 	if err != nil {
 		return global.NewError(500, "更新知识库失败", err)

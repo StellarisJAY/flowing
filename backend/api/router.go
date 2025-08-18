@@ -2,6 +2,7 @@ package api
 
 import (
 	"flowing/api/handler/ai"
+	"flowing/api/handler/kb"
 	"flowing/api/handler/monitor"
 	"flowing/api/handler/sys"
 	"flowing/api/handler/system"
@@ -90,5 +91,12 @@ func InitRouter(e *gin.Engine) {
 		m.PUT("/datasource/update", monitor.UpdateDatasource)    // 更新数据源
 		m.DELETE("/datasource/delete", monitor.DeleteDatasource) // 删除数据源
 		m.POST("/datasource/ping", monitor.PingDatasource)       // 测试连接
+	}
+	{
+		k := g.Group("/kb")
+		k.Use(middleware.Auth())
+		k.POST("/create", kb.CreateKnowledgeBase) // 创建知识库
+		k.GET("/list", kb.ListKnowledgeBase)      // 获取知识库列表
+		k.PUT("/update", kb.UpdateKnowledgeBase)  // 更新知识库
 	}
 }

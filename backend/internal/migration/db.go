@@ -3,6 +3,7 @@ package migration
 import (
 	"context"
 	"flowing/internal/model/ai"
+	"flowing/internal/model/kb"
 	"flowing/internal/model/monitor"
 	"flowing/internal/model/system"
 	"flowing/internal/repository"
@@ -20,7 +21,8 @@ func MigrateDB() {
 		&system.RoleMenu{},
 		&ai.Provider{},
 		&ai.ProviderModel{},
-		&monitor.Datasource{})
+		&monitor.Datasource{},
+		&kb.KnowledgeBase{})
 	if err != nil {
 		panic(err)
 	}

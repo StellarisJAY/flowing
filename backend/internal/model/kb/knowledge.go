@@ -13,6 +13,7 @@ type KnowledgeBase struct {
 	Description    string `json:"description" gorm:"type:varchar(255);not null"`     // 介绍
 	DatasourceId   int64  `json:"datasourceId,string" gorm:"type:bigint;not null"`   // 数据源ID
 	EmbeddingModel int64  `json:"embeddingModel,string" gorm:"type:bigint;not null"` // 嵌入模型ID
+	Enable         *bool  `json:"enable" gorm:"type:tinyint(1);not null;default:0"`
 
 	DatasourceName     string `json:"datasourceName" gorm:"-"`
 	DatasourceType     string `json:"datasourceType" gorm:"-"`
@@ -28,12 +29,14 @@ type CreateKnowledgeBaseReq struct {
 	Description    string `json:"description" binding:"required"`
 	DatasourceId   int64  `json:"datasourceId,string" binding:"required"`
 	EmbeddingModel int64  `json:"embeddingModel,string" binding:"required"`
+	Enable         *bool  `json:"enable" binding:"required"`
 }
 
 type UpdateKnowledgeBaseReq struct {
 	Id          int64  `json:"id,string" binding:"required"`
 	Name        string `json:"name" binding:"required"`
 	Description string `json:"description" binding:"required"`
+	Enable      *bool  `json:"enable" binding:"required"`
 }
 
 type KnowledgeBaseQuery struct {
@@ -57,8 +60,8 @@ func ListKnowledgeBase(ctx context.Context, query KnowledgeBaseQuery) ([]*Knowle
 	var list []*KnowledgeBase
 	var total int64
 	d := repository.DB(ctx).Model(&KnowledgeBase{}).
-		InnerJoins("monitor_datasource md ON md.id = datasource_id").
-		InnerJoins("ai_provider_model apm ON apm.id = embedding_model").
+		InnerJoins("JOIN monitor_datasource md ON md.id = datasource_id").
+		InnerJoins("JOIN ai_provider_model apm ON apm.id = embedding_model").
 		Select("ai_knowledge_base.*, md.name as datasource_name, apm.model_name")
 	if query.Name != "" {
 		d = d.Where("name LIKE ?", "%"+query.Name+"%")
