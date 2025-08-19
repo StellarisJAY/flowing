@@ -1,5 +1,6 @@
 <template>
   <Table
+    ref="tableRef"
     :columns="tableColumns"
     :records="records"
     :query-form-schema="tableQueryFormSchema"
