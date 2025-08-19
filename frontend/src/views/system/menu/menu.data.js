@@ -110,6 +110,22 @@ export const menuFormSchema = [
     defaultValue: '',
   },
   {
+    name: 'showInNav',
+    label: '显示在导航栏',
+    type: 'switch',
+    placeholder: '请选择是否显示在导航栏',
+    defaultValue: false,
+    hidden: (formState) => formState.type !== 2,
+  },
+  {
+    name: 'hideTab',
+    label: '隐藏标签',
+    type: 'switch',
+    placeholder: '请选择是否隐藏标签',
+    defaultValue: false,
+    hidden: (formState) => formState.type !== 2,
+  },
+  {
     name: 'actionCode',
     label: '权限标识',
     type: 'input',
@@ -179,29 +195,20 @@ export const getMenuTypeName = (menuType) => {
 
 export const deleteMenu = async (id) => {
   try {
-    await apiDeleteMenu({id: id});
+    await apiDeleteMenu({ id: id });
     message.success('删除成功');
     return true;
   } catch (err) {
     console.log(err);
     return false;
   }
-}
+};
 
 export const useMenuStore = defineStore('menuList', {
   state: () => {
     return {
       menuList: [],
-      menuForm: {
-        menuName: '',
-        path: '',
-        component: '',
-        parentId: 0,
-        orderNum: 1,
-        type: 1,
-        icon: '',
-        actionCode: '',
-      },
+      menuForm: {},
     };
   },
   actions: {
@@ -244,6 +251,8 @@ export const useMenuStore = defineStore('menuList', {
         type: 1,
         icon: '',
         actionCode: '',
+        showInNav: false,
+        hideTab: false,
       };
     },
   },

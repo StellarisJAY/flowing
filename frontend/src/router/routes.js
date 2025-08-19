@@ -12,4 +12,5 @@ export const ViewMap = {
   "/views/agent/knowledge/index": () => import("@/views/agent/knowledge/index.vue"),
   "/views/monitor/datasource/index": ()=> import("@/views/monitor/datasource/index.vue"),
   "/views/agent/model/index": ()=>import("@/views/agent/model/index.vue"),
+  "/views/agent/knowledge/document/index": ()=> import("@/views/agent/knowledge/document/index.vue"),
 };

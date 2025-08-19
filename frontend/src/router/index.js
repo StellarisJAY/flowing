@@ -38,6 +38,22 @@ const router = createRouter({
 });
 
 const buildRoutes = (menus) => {
+  const childBuilder = (parent, child) => {
+    const childItem = {
+      name: child['menuName'],
+      children: [],
+      meta: {
+        showInNav: child.showInNav,
+        hideTab: child.hideTab,
+      },
+    };
+    childItem.path = child.path;
+    childItem.component = ViewMap[child.component];
+    parent.children.push(childItem);
+    child.children?.forEach((grandchild) => {
+      childBuilder(childItem, grandchild);
+    });
+  };
   menus.forEach((menu) => {
     const item = {
       path: menu.path,
@@ -45,49 +61,38 @@ const buildRoutes = (menus) => {
       meta: {
         title: menu['menuName'],
         icon: menu.icon,
+        showInNav: menu.showInNav,
+        hideTab: menu.hideTab,
       },
       children: [],
     };
     item.component = LayoutMap[menu['component']];
     menu.children?.forEach((child) => {
-      const childItem = {
-        name: child['menuName'],
-      };
-      childItem.path = child.path.replace(item.path, '').slice(1);
-      childItem.component = ViewMap[child.component];
-      item.children.push(childItem);
+      childBuilder(item, child);
     });
     router.addRoute(item);
   });
 };
 
 export const setupRouterGuard = () => {
-  router.beforeEach(async (to, from, next) => {
+  router.beforeEach(async (to, from) => {
     const permissionStore = usePermissionStore();
     const userStore = useUserStore();
     const token = userStore.getToken();
     // 没有token，跳转到登录页
     if (!token) {
-      // 防止死循环
-      if (to.path === '/sys/login') {
-        next();
-        return;
-      }
-      next({ path: '/sys/login', replace: true });
-      return;
+      return { path: '/sys/login' };
     }
     // 权限已加载，直接判断路由中是否有目标路由
-    if (permissionStore.isPermissionLoaded) {
+    if (permissionStore.isPermissionLoaded()) {
       // 判断路由中是否有目标路由
       if (router.hasRoute(to.name)) {
         // 添加tab标签
-        userStore.changeTabPanesOnRouting(to, false);
-        next();
+        userStore.changeTabPanesOnRouting(to);
         return;
       }
       // 没有目标路由，跳转到404
-      next({ path: '/error/404', replace: true });
-      return;
+      return { path: '/error/404', replace: true };
     }
     // 加载用户菜单权限
     const menus = await permissionStore.getUserPermissions();
@@ -96,11 +101,10 @@ export const setupRouterGuard = () => {
       buildRoutes(menus);
       permissionStore.setPermissionLoaded(true);
       permissionStore.setNavMenus(menus);
-      // 重新加载路由后，需要重新导航到当前路由，否则会出现404
-      next({ ...to, replace: true });
+      return to;
     } else {
       // 没有菜单权限，跳转到登录页
-      next({ path: '/sys/login', replace: true });
+      return { path: '/sys/login', replace: true };
     }
   });
 };

@@ -22,6 +22,9 @@ type Menu struct {
 	OrderNum   int     `json:"orderNum" gorm:"column:order_num;type:int;not null;"`
 	Status     int     `json:"status" gorm:"column:status;type:int;default:1;"`
 	ActionCode *string `json:"actionCode" gorm:"column:action_code;type:varchar(50);unique;default:null"` // 权限标识
+	ShowInNav  *bool   `json:"showInNav" gorm:"column:show_in_nav;type:bool;not null;default:true"`       // 是否在导航栏显示
+	HideTab    *bool   `json:"hideTab" gorm:"column:hide_tab;type:bool;not null;default:false"`           // 是否隐藏标签页
+	Icon       string  `json:"icon" gorm:"column:icon;type:varchar(255);not null;"`                       // 图标
 	Children   []*Menu `json:"children" gorm:"-"`
 	Key        int64   `json:"key,string" gorm:"-"`
 }
@@ -57,6 +60,9 @@ type CreateMenuReq struct {
 	ParentId   int64   `json:"parentId,string"`
 	OrderNum   int     `json:"orderNum"`
 	ActionCode *string `json:"actionCode"`
+	ShowInNav  *bool   `json:"showInNav"`
+	HideTab    *bool   `json:"hideTab"`
+	Icon       string  `json:"icon"`
 }
 
 type UpdateMenuReq struct {
@@ -68,6 +74,9 @@ type UpdateMenuReq struct {
 	ParentId   int64   `json:"parentId,string"`
 	OrderNum   int     `json:"orderNum"`
 	ActionCode *string `json:"actionCode"`
+	ShowInNav  *bool   `json:"showInNav"`
+	HideTab    *bool   `json:"hideTab"`
+	Icon       string  `json:"icon"`
 }
 
 type CreateRoleMenuReq struct {

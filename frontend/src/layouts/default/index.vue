@@ -12,29 +12,30 @@
       <div class="flowing-header-avatar"></div>
     </Layout.Header>
 
+    <Tabs
+      :activeKey="activeTab"
+      type="editable-card"
+      @edit="editTabs"
+      :hideAdd="true"
+      @tabClick="onTabClick"
+      style="width: 100%"
+    >
+      <Tabs.TabPane
+        v-for="panel in tabPanes"
+        :key="panel.key"
+        :tab="panel.title"
+        :closable="panel.closable"
+      />
+    </Tabs>
+
     <Layout.Content class="flowing-content">
-      <Tabs
-        :activeKey="activeTab"
-        type="editable-card"
-        @edit="editTabs"
-        :hideAdd="true"
-        @tabClick="onTabClick"
-        style="height: 100%"
-      >
-        <Tabs.TabPane
-          v-for="panel in tabPanes"
-          :key="panel.key"
-          :tab="panel.title"
-          :closable="panel.closable"
-        >
-          <div class="flowing-tab-content">
-            <router-view v-slot="{ Component }">
-              <component :is="Component" />
-            </router-view>
-          </div>
-        </Tabs.TabPane>
-      </Tabs>
+      <div class="flowing-tab-content">
+        <router-view v-slot="{ Component }">
+          <component :is="Component" :key="$route.fullPath" />
+        </router-view>
+      </div>
     </Layout.Content>
+
     <FloatButton type="primary" tooltip="AI助手" @click="openAiHelperDrawer">
       <template #icon>
         <MessageOutlined />
@@ -46,11 +47,11 @@
 
 <script lang="js" setup>
   import { Layout, Menu, Tabs, FloatButton } from 'ant-design-vue';
-  import { computed, ref, watch } from 'vue';
+  import { computed, ref } from 'vue';
   import { useRouter } from 'vue-router';
   import { usePermissionStore } from '@/stores/permission.js';
   import { useUserStore } from '@/stores/user.js';
-  import {MessageOutlined} from '@ant-design/icons-vue';
+  import { MessageOutlined } from '@ant-design/icons-vue';
   import ChatDrawer from '@/components/Chat/ChatDrawer.vue';
 
   const router = useRouter();
@@ -62,16 +63,13 @@
 
   const aiHelperDrawer = ref();
 
-  watch(activeTab, (newVal) => {
-    router.replace(newVal);
-  });
-
-  const editTabs = (path) => {
-    userStore.changeTabPanesOnRouting({ path: path }, true);
+  const editTabs = (key) => {
+    userStore.deleteTabPane(key);
+    router.replace(activeTab.value);
   };
 
   const onMenuItemClick = (item) => {
-    router.push(item.key);
+    router.replace(item.key);
   };
 
   const onTabClick = (key) => {
@@ -129,12 +127,12 @@
 </style>
 
 <style>
-.ant-tabs-nav {
-  background-color: white;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-.ant-tabs-content {
-  height: 100%;
-}
+  .ant-tabs-nav {
+    background-color: white;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .ant-tabs-content {
+    height: 100%;
+  }
 </style>

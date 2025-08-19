@@ -23,6 +23,9 @@ func CreateMenu(ctx context.Context, menu sysmodel.CreateMenuReq) error {
 		ParentId:   menu.ParentId,
 		OrderNum:   menu.OrderNum,
 		ActionCode: menu.ActionCode,
+		ShowInNav:  menu.ShowInNav,
+		HideTab:    menu.HideTab,
+		Icon:       menu.Icon,
 	}
 	return sysmodel.CreateMenu(ctx, model)
 }
@@ -86,6 +89,9 @@ func UpdateMenu(ctx context.Context, req sysmodel.UpdateMenuReq) error {
 		ParentId:   req.ParentId,
 		OrderNum:   req.OrderNum,
 		ActionCode: req.ActionCode,
+		ShowInNav:  req.ShowInNav,
+		HideTab:    req.HideTab,
+		Icon:       req.Icon,
 	})
 }
 

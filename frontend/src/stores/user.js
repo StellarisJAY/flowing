@@ -13,16 +13,13 @@ export const useUserStore = defineStore('login_user', {
     getToken() {
       return localStorage.getItem('flowing_access_token');
     },
-    changeTabPanesOnRouting(to, del) {
+    changeTabPanesOnRouting(to) {
+      if (to.meta.hideTab) {
+        return;
+      }
       const tabPanes = this.tabPanes;
       const index = tabPanes.findIndex((item) => item.key === to.path);
-      if (del === true && index === -1) return;
       if (index !== -1) {
-        if (del) {
-          tabPanes.splice(index, 1);
-          this.activeTab = tabPanes[0].key;
-          return;
-        }
         this.activeTab = to.path;
         return;
       }
@@ -32,6 +29,16 @@ export const useUserStore = defineStore('login_user', {
         closable: true,
       });
       this.activeTab = to.path;
+    },
+    deleteTabPane(key) {
+      const tabPanes = this.tabPanes;
+      const index = tabPanes.findIndex((item) => item.key === key);
+      if (index !== -1) {
+        tabPanes.splice(index, 1);
+        if (this.activeTab === key) {
+          this.activeTab = tabPanes[0].key;
+        }
+      }
     },
   },
 });
