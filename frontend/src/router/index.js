@@ -28,6 +28,10 @@ const router = createRouter({
         {
           name: '页面不存在',
           path: '404',
+          meta: {
+            title: '404',
+            hideTab: true,
+          },
           component: () => import('@/views/sys/404/index.vue'),
         },
       ],
@@ -79,6 +83,10 @@ export const setupRouterGuard = () => {
     const permissionStore = usePermissionStore();
     const userStore = useUserStore();
     const token = userStore.getToken();
+    // 登录页，直接放行
+    if (to.name === '登录') {
+      return;
+    }
     // 没有token，跳转到登录页
     if (!token) {
       return { path: '/sys/login' };
