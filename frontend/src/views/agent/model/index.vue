@@ -1,6 +1,7 @@
 <template>
   <div>
     <CardList
+      ref="cardListRef"
       :records="records"
       :query-form-schema="queryFormSchema"
       :search="search"
@@ -22,6 +23,7 @@
       :form-rules="providerFormRules"
       ref="providerDrawerRef"
       :submit="submit"
+      @close="triggerQuery"
     />
     <ModelDrawer ref="modelDrawerRef" />
   </div>
@@ -40,6 +42,7 @@
   import { DeleteOutlined, SettingOutlined } from '@ant-design/icons-vue';
   import ModelDrawer from '@/views/agent/model/ModelDrawer.vue';
 
+  const cardListRef = ref();
   const providerStore = useProviderStore();
   const records = computed(() => providerStore.records);
   const formState = computed(() => providerStore.formState);
@@ -65,5 +68,9 @@
 
   const openModelDrawer = (record) => {
     modelDrawerRef.value.open(record);
+  };
+
+  const triggerQuery = async () => {
+    await cardListRef.value.triggerQuery();
   };
 </script>

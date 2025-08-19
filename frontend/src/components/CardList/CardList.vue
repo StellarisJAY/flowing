@@ -6,6 +6,7 @@
         v-model:state="queryForm"
         submit-btn-text="查询"
         :submit-func="search"
+        ref="queryFormRef"
       />
     </div>
     <div class="card-container">
@@ -27,8 +28,12 @@
         </Card>
       </div>
       <div class="card-cell" v-for="item in records" :key="item.id">
-        <Card class="card-item" :body-style="itemBodyStyle" @click="() => emits('item-click', item)">
-          <slot name="bodyCell" :item="item"/>
+        <Card
+          class="card-item"
+          :body-style="itemBodyStyle"
+          @click="() => emits('item-click', item)"
+        >
+          <slot name="bodyCell" :item="item" />
           <template #actions>
             <slot name="actions" :item="item" />
           </template>
@@ -68,6 +73,8 @@
   });
   const emits = defineEmits(['add', 'item-click']);
 
+  const queryFormRef = ref();
+
   const itemBodyStyle = {
     height: '80%',
     width: '100%',
@@ -80,6 +87,12 @@
 
   onMounted(async () => {
     await props.search(queryForm.value);
+  });
+
+  defineExpose({
+    triggerQuery: async () => {
+      await queryFormRef.value.submit();
+    },
   });
 </script>
 

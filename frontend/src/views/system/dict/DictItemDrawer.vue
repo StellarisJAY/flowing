@@ -1,6 +1,7 @@
 <template>
   <Drawer :open="visible" destroy-on-close size="large" @close="close" title="字典项配置">
     <Table
+      ref="tableRef"
       :columns="columns"
       :records="records"
       :query-form-schema="queryFormSchema"
@@ -15,7 +16,7 @@
           <Button type="link" @click="() => openFormModal(true, record)">编辑</Button>
           <ConfirmButton text="删除" @confirm="async ()=> {
             await deleteDictItem(record.id);
-            await refresh();
+            await triggerQuery();
           }" />
         </Space>
       </template>
@@ -29,7 +30,7 @@
       :form-rules="dictItemFormRules"
       :form-state="dictItemForm"
       :submit="submit"
-      @close="refresh"
+      @close="triggerQuery"
     />
   </Drawer>
 </template>
@@ -49,6 +50,7 @@
   import ConfirmButton from '@/components/Button/ConfirmButton.vue';
   import IconButton from '@/components/Button/IconButton.vue';
 
+  const tableRef = ref();
   const visible = ref(false);
   const dict = ref();
   const dictItemStore = useDictItemStore();
@@ -94,6 +96,10 @@
       },
       isUpdate
     );
+  };
+
+  const triggerQuery = async () => {
+    await tableRef.value.triggerQuery();
   };
 
   defineExpose({

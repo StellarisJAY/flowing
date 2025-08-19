@@ -1,5 +1,6 @@
 <template>
   <Table
+    ref="tableRef"
     :columns="columns"
     :records="records"
     :query-form-schema="queryFormSchema"
@@ -19,7 +20,7 @@
           @confirm="
             async () => {
               await deleteDict(record.id);
-              await refresh();
+              await triggerQuery();
             }
           "
         />
@@ -32,7 +33,7 @@
     :form-state="dictForm"
     :form-rules="dictFormRules"
     :submit="saveDict"
-    @close="refresh"
+    @close="triggerQuery"
     title="字典"
   />
   <DictItemDrawer ref="dictItemDrawerRef" />
@@ -54,6 +55,8 @@
   import DictItemDrawer from '@/views/system/dict/DictItemDrawer.vue';
   import ConfirmButton from '@/components/Button/ConfirmButton.vue';
   import IconButton from '@/components/Button/IconButton.vue';
+
+  const tableRef = ref();
 
   const dictStore = useDictStore();
 
@@ -83,6 +86,10 @@
 
   const openDictItemDrawer = (record) => {
     dictItemDrawerRef.value.open(record);
+  };
+
+  const triggerQuery = async () => {
+    await tableRef.value.triggerQuery();
   };
 </script>
 

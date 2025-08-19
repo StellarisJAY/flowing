@@ -25,7 +25,7 @@
     :form-rules="userFormRules"
     :form-state="formState"
     :submit="saveUser"
-    @close="()=>refresh()"
+    @close="triggerQuery"
   />
 </template>
 
@@ -62,6 +62,10 @@
       userStore.initUserForm();
     }
     formDrawerRef.value.open(isUpdate);
+  };
+
+  const triggerQuery = async () => {
+    await tableRef.value.triggerQuery();
   };
 </script>
 

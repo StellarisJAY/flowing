@@ -1,5 +1,6 @@
 <template>
   <Table
+    ref="tableRef"
     :columns="columns"
     :records="records"
     :total="total"
@@ -30,7 +31,7 @@
     :form-state="formState"
     title="数据源"
     :submit="submit"
-    @close="refresh"
+    @close="triggerQuery"
   >
     <template #form-port="{ formState }">
       <Space>
@@ -64,7 +65,7 @@
   } from '@/views/monitor/datasource/datasource.data.js';
   import FormDrawer from '@/components/Drawer/FormDrawer.vue';
   import { InputNumber } from 'ant-design-vue';
-
+  const tableRef = ref();
   const drawerRef = ref();
   const datasourceStore = useDatasourceStore();
   const records = computed(() => datasourceStore.records);
@@ -96,6 +97,10 @@
     connLoading.value = true;
     connState.value = await testConnection(data);
     connLoading.value = false;
+  };
+
+  const triggerQuery = async () => {
+    await tableRef.value.triggerQuery();
   };
 </script>
 

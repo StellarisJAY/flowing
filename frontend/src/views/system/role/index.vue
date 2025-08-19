@@ -7,7 +7,12 @@
     :total="total"
   >
     <template #tool-buttons>
-      <IconButton type="primary" @click="()=>openRoleDrawer(false)" icon="PlusOutlined" title="新增角色" />
+      <IconButton
+        type="primary"
+        @click="() => openRoleDrawer(false)"
+        icon="PlusOutlined"
+        title="新增角色"
+      />
     </template>
     <template #bodyCell="{ column, record }">
       <Space v-if="column.dataIndex === 'action'">
@@ -18,7 +23,7 @@
           @confirm="
             async () => {
               await deleteRole(record.id);
-              await refresh();
+              await triggerQuery();
             }
           "
         />
@@ -31,7 +36,7 @@
     :form-schema="roleFormSchema"
     :form-rules="roleFormRules"
     :submit="saveRole"
-    @close="refresh"
+    @close="triggerQuery"
     title="角色"
   />
   <AuthDrawer ref="authDrawerRef"></AuthDrawer>
@@ -55,6 +60,7 @@
   import ConfirmButton from '@/components/Button/ConfirmButton.vue';
   import IconButton from '@/components/Button/IconButton.vue';
 
+  const tableRef = ref();
   const roleStore = useRoleStore();
   const records = computed(() => roleStore.roleList);
   const total = computed(() => roleStore.total);
@@ -79,6 +85,10 @@
   const openAuthDrawer = (id) => {
     const role = roleStore.getRoleDetail(id);
     authDrawerRef.value.setVisible(true, role);
+  };
+
+  const triggerQuery = async () => {
+    await tableRef.value.triggerQuery();
   };
 </script>
 

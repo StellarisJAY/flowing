@@ -2,6 +2,7 @@
   <div style="height: 100%; width: 100%">
     <div class="search-bar">
       <Form
+        ref="queryFormRef"
         :state="queryForm"
         :form-schema="queryFormSchema"
         :rules="queryFormRules"
@@ -97,6 +98,8 @@
     },
   });
   const emit = defineEmits(['refresh']);
+  const queryFormRef = ref();
+
   const selectedKeys = defineModel('selectedKeys', {
     type: Array,
     default: () => [],
@@ -147,6 +150,12 @@
 
   onMounted(() => {
     search();
+  });
+
+  defineExpose({
+    triggerQuery: async () => {
+      await queryFormRef.value.submit();
+    },
   });
 </script>
 

@@ -1,5 +1,6 @@
 <template>
   <CardList
+    ref="cardListRef"
     :query-form-schema="searchFormSchema"
     :use-add-card="true"
     :records="records"
@@ -12,8 +13,8 @@
       {{ item.name }}
     </template>
     <template #actions="{ item }">
-      <SettingOutlined @click="()=>openModal(true, item)"/>
-      <DeleteOutlined/>
+      <SettingOutlined @click.stop="() => openModal(true, item)" />
+      <DeleteOutlined />
     </template>
   </CardList>
   <FormModal
@@ -23,7 +24,7 @@
     :form-rules="knowledgeFormRules"
     title="知识库"
     :submit="submit"
-    @close="search"
+    @close="triggerQuery"
   />
 </template>
 <script setup lang="js">
@@ -39,10 +40,11 @@
   import { SettingOutlined, DeleteOutlined } from '@ant-design/icons-vue';
   import { useRouter } from 'vue-router';
 
+  const cardListRef = ref();
   const knowledgeStore = useKnowledgeStore();
   const formState = computed(() => knowledgeStore.knowledgeForm);
   const formModalRef = ref();
-  const records = computed(()=>knowledgeStore.records);
+  const records = computed(() => knowledgeStore.records);
   const router = useRouter();
 
   const openModal = (isUpdate, record) => {
@@ -67,7 +69,11 @@
       path: `/agent/knowledge/documents?knowledgeBaseId=${id}`,
       query: {
         knowledgeBaseId: id,
-      }
+      },
     });
-  }
+  };
+
+  const triggerQuery = async () => {
+    await cardListRef.value.triggerQuery();
+  };
 </script>

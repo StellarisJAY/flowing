@@ -16,7 +16,7 @@
         <Button type="link" size="small" @click="() => openDrawer(true, record)">编辑</Button>
         <ConfirmButton text="删除" @confirm="async () => {
           await deleteMenu(record.id);
-          await refresh();
+          await triggerQuery();
         }" />
       </Space>
     </template>
@@ -27,7 +27,7 @@
     :form-state="drawerFormState"
     :form-rules="drawerFormRules"
     :submit="saveMenu"
-    @close="refresh"
+    @close="triggerQuery"
     title="菜单"
   />
 </template>
@@ -56,6 +56,7 @@
   const drawerFormState = computed(() => menuStore.menuForm);
   const drawerFormRules = menuFormRules;
   const menuDrawer = ref();
+  const tableRef = ref();
 
   const refresh = async (e) => {
     await menuStore.queryMenuList(e);
@@ -79,6 +80,10 @@
     } else {
       return menuStore.addMenu(e);
     }
+  };
+
+  const triggerQuery = async () => {
+    await tableRef.value.triggerQuery();
   };
 </script>
 
