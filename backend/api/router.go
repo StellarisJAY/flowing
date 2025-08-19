@@ -99,4 +99,11 @@ func InitRouter(e *gin.Engine) {
 		k.GET("/list", kb.ListKnowledgeBase)      // 获取知识库列表
 		k.PUT("/update", kb.UpdateKnowledgeBase)  // 更新知识库
 	}
+	{
+		d := g.Group("/kb/doc")
+		d.Use(middleware.Auth())
+		d.POST("/upload", kb.UploadDocument)  // 上传文档
+		d.GET("/list", kb.ListDocument)       // 获取文档列表
+		d.GET("/download", kb.GetDownloadURL) // 获取文档下载URL
+	}
 }

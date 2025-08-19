@@ -4,6 +4,7 @@ import (
 	"context"
 	"flowing/internal/config"
 	"io"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
@@ -18,7 +19,7 @@ type Store struct {
 func NewStore(config *config.Config) *Store {
 	client, err := minio.New(config.Minio.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(config.Minio.AccessKey, config.Minio.SecretKey, ""),
-		Secure: true,
+		Secure: false,
 	})
 	if err != nil {
 		panic(err)
@@ -50,4 +51,12 @@ func (s *Store) Delete(ctx context.Context, key string) error {
 	return s.client.RemoveObject(ctx, s.bucket, key, minio.RemoveObjectOptions{
 		ForceDelete: true,
 	})
+}
+
+func (s *Store) TempDownloadURL(ctx context.Context, key string) (string, error) {
+	url, err := s.client.PresignedGetObject(ctx, s.bucket, key, time.Hour, nil)
+	if err != nil {
+		return "", err
+	}
+	return url.String(), nil
 }

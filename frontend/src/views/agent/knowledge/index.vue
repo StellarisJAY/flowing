@@ -6,6 +6,7 @@
     :search="search"
     add-card-title="新增知识库"
     @add="() => openModal(false)"
+    @item-click="(item) => toDocument(item.id)"
   >
     <template #bodyCell="{ item }">
       {{ item.name }}
@@ -36,11 +37,13 @@
     useKnowledgeStore,
   } from './knowledge.data.js';
   import { SettingOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+  import { useRouter } from 'vue-router';
 
   const knowledgeStore = useKnowledgeStore();
   const formState = computed(() => knowledgeStore.knowledgeForm);
   const formModalRef = ref();
   const records = computed(()=>knowledgeStore.records);
+  const router = useRouter();
 
   const openModal = (isUpdate, record) => {
     if (isUpdate) {
@@ -57,5 +60,14 @@
 
   const submit = async (data, isUpdate) => {
     return await knowledgeStore.saveKnowledgeBase(data, isUpdate);
+  };
+
+  const toDocument = (id) => {
+    router.push({
+      path: `/agent/knowledge/documents?knowledgeBaseId=${id}`,
+      query: {
+        knowledgeBaseId: id,
+      }
+    });
   }
 </script>

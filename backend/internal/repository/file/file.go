@@ -11,9 +11,11 @@ type Store interface {
 	// Upload 上传文件, 返回文件路径
 	Upload(ctx context.Context, content io.Reader) (string, error)
 	// Download 下载文件, 返回文件内容
-	Download(ctx context.Context, uri string) (io.Reader, error)
+	Download(ctx context.Context, key string) (io.Reader, error)
 	// Delete 删除文件
-	Delete(ctx context.Context, uri string) error
+	Delete(ctx context.Context, key string) error
+	// TempDownloadURL 生成临时下载URL
+	TempDownloadURL(ctx context.Context, key string) (string, error)
 }
 
 func NewStore(config *config.Config) Store {

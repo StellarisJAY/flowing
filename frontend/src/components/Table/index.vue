@@ -145,7 +145,9 @@
     };
   });
 
-  onMounted(() => search());
+  onMounted(() => {
+    search();
+  });
 </script>
 
 <style scoped>
