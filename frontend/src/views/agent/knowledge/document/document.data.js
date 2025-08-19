@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia';
 import { message } from 'ant-design-vue';
-import { getDownloadUrl, listDocument, uploadDocument } from '@/api/ai/document.api.js';
+import {
+  deleteDocument,
+  getDownloadUrl,
+  listDocument,
+  renameDocument,
+  uploadDocument,
+} from '@/api/ai/document.api.js';
 
 export const queryFormSchema = [
   {
@@ -53,10 +59,32 @@ export const formatFileSize = (size) => {
 
 export const download = async (record) => {
   try {
-    const {data} = await getDownloadUrl(record.id);
+    const { data } = await getDownloadUrl(record.id);
     window.open(data, record.originalName);
   } catch {
     message.error('下载失败');
+  }
+};
+
+export const renameFormSchema = [
+  {
+    label: '文档名称',
+    name: 'originalName',
+    type: 'input',
+    placeholder: '请输入文档名称',
+  },
+];
+
+export const renameFormRules = {
+  originalName: [{ required: true, message: '请输入文档名称', trigger: 'submit' }],
+};
+
+export const deleteDoc = async (record) => {
+  try {
+    await deleteDocument(record.id);
+    message.success('删除成功');
+  } catch {
+    message.error('删除失败');
   }
 };
 
@@ -65,6 +93,7 @@ export const useDocumentStore = defineStore('kb_document', {
     records: [],
     total: 0,
     formState: {},
+    renameFormState: {},
   }),
   actions: {
     async list(query) {
@@ -75,6 +104,19 @@ export const useDocumentStore = defineStore('kb_document', {
       } catch {
         message.error('获取文档列表失败');
       }
+    },
+    async rename(formState) {
+      try {
+        await renameDocument(formState);
+        message.success('重命名成功');
+        return true;
+      } catch {
+        message.error('重命名失败');
+        return false;
+      }
+    },
+    setRenameFormState(state) {
+      this.renameFormState = state;
     },
     setFormState(state) {
       this.formState = state;

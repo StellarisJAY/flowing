@@ -71,3 +71,25 @@ func GetDownloadURL(c *gin.Context) {
 	}
 	c.JSON(200, common.OkWithData(url))
 }
+
+func RenameDocument(c *gin.Context) {
+	var req model.RenameDocumentReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	if err := service.RenameDocument(c, req); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
+}
+
+func DeleteDocument(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Query("id"), 10, 64)
+	if err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	if err := service.DeleteDocument(c, id); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
+}

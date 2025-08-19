@@ -35,6 +35,11 @@ type UploadDocumentReq struct {
 	ContentType     string         `json:"contentType"`
 }
 
+type RenameDocumentReq struct {
+	Id           int64  `json:"id,string" binding:"required"`
+	OriginalName string `json:"originalName" binding:"required"`
+}
+
 func ListDocument(ctx context.Context, query DocumentQuery) ([]*Document, int64, error) {
 	var list []*Document
 	var total int64

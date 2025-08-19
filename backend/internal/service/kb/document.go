@@ -39,6 +39,32 @@ func UploadDocument(ctx context.Context, req kb.UploadDocumentReq) error {
 	})
 }
 
+func RenameDocument(ctx context.Context, req kb.RenameDocumentReq) error {
+	err := repository.DB(ctx).Model(&kb.Document{}).Where("id = ?", req.Id).UpdateColumns(map[string]any{
+		"original_name": req.OriginalName,
+	}).Error
+	if err != nil {
+		return global.NewError(500, "重命名文档失败", err)
+	}
+	return nil
+}
+
+func DeleteDocument(ctx context.Context, id int64) error {
+	return repository.Tx(ctx, func(c context.Context) error {
+		var doc *kb.Document
+		if err := repository.DB(c).First(&doc, id).Error; err != nil {
+			return global.NewError(500, "删除文档失败", err)
+		}
+		if err := repository.DB(c).Delete(&kb.Document{}, "id = ?", id).Error; err != nil {
+			return global.NewError(500, "删除文档失败", err)
+		}
+		if err := repository.File().Delete(c, doc.Uri); err != nil {
+			return global.NewError(500, "删除文档失败", err)
+		}
+		return nil
+	})
+}
+
 func GetDownloadURL(ctx context.Context, id int64) (string, error) {
 	var doc kb.Document
 	if err := repository.DB(ctx).First(&doc, "id = ?", id).Error; err != nil {
