@@ -1,5 +1,7 @@
 package config
 
+import "time"
+
 type Config struct {
 	DB struct {
 		Driver string `yaml:"driver"`
@@ -34,4 +36,9 @@ type Config struct {
 		SecretKey string `yaml:"secretKey"`
 		Bucket    string `yaml:"bucket"`
 	} `yaml:"minio"`
+	Worker string `yaml:"worker"`
+	GoPool struct {
+		Size    int           `yaml:"size"`
+		Timeout time.Duration `yaml:"timeout"`
+	} `yaml:"gopool"`
 }

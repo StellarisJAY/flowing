@@ -17,6 +17,24 @@
           v-if="column.dataIndex === 'actions'"
           style="display: flex; justify-content: flex-start; gap: 10px"
         >
+          <Button type="link" v-if="!record.task" @click="() => handleParse(record)"
+            >开始解析</Button
+          >
+          <Button
+            type="link"
+            v-else-if="
+              record.task.status === 'failed' ||
+              record.task.status === 'cancelled' ||
+              record.task.status === 'success'
+            "
+            @click="() => handleParse(record)"
+            >重新解析</Button
+          >
+          <Button
+            type="link"
+            v-else-if="record.task.status !== 'success'"
+            @click="() => handleCancel(record)"
+            >取消解析</Button>
           <Button type="link" @click="() => download(record)">下载</Button>
           <Button type="link" @click="() => openRenameModal(record)">重命名</Button>
           <ConfirmButton title="删除" @confirm="() => handleDelete(record)" />
@@ -27,6 +45,13 @@
         <Button type="link" v-if="column.dataIndex === 'originalName'">{{
           record.originalName
         }}</Button>
+        <div v-if="column.dataIndex === 'task'">
+          <Tag v-if="!record.task">未解析</Tag>
+          <Tag v-else-if="record.task.status === 'success'" color="green">已解析</Tag>
+          <Tag v-else-if="record.task.status === 'failed'" color="red">解析失败</Tag>
+          <Tag v-else-if="record.task.status === 'cancelled'" color="default">已取消</Tag>
+          <Tag v-else>解析中...</Tag>
+        </div>
       </template>
     </Table>
 
@@ -44,7 +69,7 @@
 
 <script lang="js" setup>
   import Table from '@/components/Table/index.vue';
-  import { computed, ref } from 'vue';
+  import { computed, onMounted, onUnmounted, ref } from 'vue';
   import {
     formatFileSize,
     useDocumentStore,
@@ -55,11 +80,12 @@
     renameFormSchema,
     renameFormRules,
     deleteDoc,
+    parse, cancel,
   } from '@/views/agent/knowledge/document/document.data.js';
   import IconButton from '@/components/Button/IconButton.vue';
   import { useRoute } from 'vue-router';
   import UploadModal from '@/components/Modal/UploadModal.vue';
-  import { Button } from 'ant-design-vue';
+  import { Button, Tag } from 'ant-design-vue';
   import ConfirmButton from '@/components/Button/ConfirmButton.vue';
   import FormModal from '@/components/Modal/FormModal.vue';
 
@@ -74,6 +100,7 @@
   const renameModalRef = ref();
   const tableRef = ref();
   const renameFormState = computed(() => documentStore.renameFormState);
+  const interval = ref();
 
   const search = async (query) => {
     const data = {
@@ -114,4 +141,26 @@
     await deleteDoc(record);
     await triggerQuery();
   };
+
+  const handleParse = async (record) => {
+    await parse({
+      documentId: record.id,
+    });
+    await triggerQuery();
+  };
+
+  const handleCancel = async (record) => {
+    await cancel(record.task.id);
+    await triggerQuery();
+  };
+
+  // onMounted(async () => {
+  //   interval.value = setInterval(async () => {
+  //     await triggerQuery();
+  //   }, 5000);
+  // });
+  //
+  // onUnmounted(() => {
+  //   clearInterval(interval.value);
+  // })
 </script>

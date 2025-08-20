@@ -23,3 +23,7 @@ minio:
   accessKey: minioadmin
   secretKey: 12345678
   bucket: flowingdocs
+worker: gopool
+gopool:
+  size: 16
+  timeout: 300s

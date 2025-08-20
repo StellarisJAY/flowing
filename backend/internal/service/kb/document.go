@@ -12,6 +12,23 @@ func ListDocument(ctx context.Context, query kb.DocumentQuery) ([]*kb.Document, 
 	if err != nil {
 		return nil, 0, global.NewError(500, "获取文档列表失败", err)
 	}
+	ids := make([]int64, len(res))
+	for i, item := range res {
+		ids[i] = item.Id
+	}
+	tasks, err := kb.ListTasks(ctx, ids)
+	if err != nil {
+		return nil, 0, global.NewError(500, "获取文档列表失败", err)
+	}
+	taskMap := make(map[int64]*kb.Task)
+	for _, item := range tasks {
+		taskMap[item.DocumentId] = item
+	}
+	for _, item := range res {
+		if task, ok := taskMap[item.Id]; ok {
+			item.Task = task
+		}
+	}
 	return res, total, nil
 }
 

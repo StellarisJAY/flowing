@@ -103,10 +103,12 @@ func InitRouter(e *gin.Engine) {
 	{
 		d := g.Group("/kb/doc")
 		d.Use(middleware.Auth())
-		d.POST("/upload", kb.UploadDocument)   // 上传文档
-		d.GET("/list", kb.ListDocument)        // 获取文档列表
-		d.GET("/download", kb.GetDownloadURL)  // 获取文档下载URL
-		d.PUT("/rename", kb.RenameDocument)    // 重命名文档
-		d.DELETE("/delete", kb.DeleteDocument) // 删除文档
+		d.POST("/upload", kb.UploadDocument)      // 上传文档
+		d.GET("/list", kb.ListDocument)           // 获取文档列表
+		d.GET("/download", kb.GetDownloadURL)     // 获取文档下载URL
+		d.PUT("/rename", kb.RenameDocument)       // 重命名文档
+		d.DELETE("/delete", kb.DeleteDocument)    // 删除文档
+		d.POST("/parse", kb.ParseDocument)        // 解析文档
+		d.POST("/cancel", kb.CancelParseDocument) // 取消解析文档
 	}
 }

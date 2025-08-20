@@ -93,3 +93,25 @@ func DeleteDocument(c *gin.Context) {
 	}
 	c.JSON(200, common.Ok())
 }
+
+func ParseDocument(c *gin.Context) {
+	var req model.CreateTaskReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	if err := service.CreateTask(c, req); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
+}
+
+func CancelParseDocument(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Query("id"), 10, 64)
+	if err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	if err := service.CancelTask(c, id); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
+}

@@ -7,15 +7,17 @@ import (
 	"flowing/internal/config"
 	"flowing/internal/migration"
 	"flowing/internal/repository"
-	"github.com/gin-gonic/gin"
-	"gopkg.in/yaml.v3"
 	"net/http"
 	"os"
 	"os/signal"
+
+	"github.com/gin-gonic/gin"
+	"gopkg.in/yaml.v3"
 )
 
 func initialize(conf *config.Config) {
 	global.InitLogger(conf)
+	global.InitScheduler(conf)
 	// 初始化数据库
 	repository.Init(conf)
 	migration.MigrateDB()

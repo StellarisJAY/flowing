@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia';
 import { message } from 'ant-design-vue';
 import {
+  cancelParse,
   deleteDocument,
   getDownloadUrl,
   listDocument,
+  parseDocument,
   renameDocument,
   uploadDocument,
 } from '@/api/ai/document.api.js';
@@ -32,6 +34,11 @@ export const columns = [
     title: '文档大小',
     dataIndex: 'size',
     key: 'size',
+  },
+  {
+    title: '解析状态',
+    dataIndex: 'task',
+    key: 'task',
   },
   {
     title: '操作',
@@ -85,6 +92,22 @@ export const deleteDoc = async (record) => {
     message.success('删除成功');
   } catch {
     message.error('删除失败');
+  }
+};
+
+export const parse = async (data) => {
+  try {
+    await parseDocument(data);
+  } catch {
+    message.error('开始解析失败');
+  }
+};
+
+export const cancel = async (id) => {
+  try {
+    await cancelParse(id);
+  } catch {
+    message.error('取消解析失败');
   }
 };
 

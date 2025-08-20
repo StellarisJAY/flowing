@@ -15,6 +15,8 @@ type Document struct {
 	KnowledgeBaseId int64  `json:"knowledgeBaseId,string" gorm:"type:bigint;not null"`
 	Uri             string `json:"uri" gorm:"type:varchar(255);not null"`
 	Size            int64  `json:"size" gorm:"type:int;not null"`
+
+	Task *Task `json:"task" gorm:"-"`
 }
 
 func (d *Document) TableName() string {
@@ -55,4 +57,12 @@ func ListDocument(ctx context.Context, query DocumentQuery) ([]*Document, int64,
 		return nil, 0, err
 	}
 	return list, total, nil
+}
+
+func GetDocument(ctx context.Context, id int64) (*Document, error) {
+	var document *Document
+	if err := repository.DB(ctx).First(&document, id).Error; err != nil {
+		return nil, err
+	}
+	return document, nil
 }

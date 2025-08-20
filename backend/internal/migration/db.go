@@ -23,7 +23,8 @@ func MigrateDB() {
 		&ai.ProviderModel{},
 		&monitor.Datasource{},
 		&kb.KnowledgeBase{},
-		&kb.Document{})
+		&kb.Document{},
+		&kb.Task{})
 	if err != nil {
 		panic(err)
 	}
