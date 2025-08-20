@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { addKnowledge, queryKnowledgeList, updateKnowledge } from '@/api/ai/knowledge.api.js';
+import { addKnowledge, deleteKnowledge, queryKnowledgeList, updateKnowledge } from '@/api/ai/knowledge.api.js';
 import { message } from 'ant-design-vue';
 
 export const knowledgeFormSchema = [
@@ -69,6 +69,17 @@ export const searchFormSchema = [
     defaultValue: '',
   },
 ];
+
+export const deleteKb = async (id) => {
+  try {
+    await deleteKnowledge(id);
+    message.success('删除成功');
+    return true;
+  } catch  {
+    message.error('删除失败');
+    return false;
+  }
+}
 
 export const useKnowledgeStore = defineStore('agent_knowledge', {
   state: () => ({

@@ -5,6 +5,7 @@ import (
 	"flowing/internal/model/common"
 	"flowing/internal/repository"
 	"flowing/internal/repository/db"
+	"fmt"
 )
 
 type DatasourceType string
@@ -112,4 +113,33 @@ func GetDatasource(ctx context.Context, id int64) (*Datasource, error) {
 		return nil, err
 	}
 	return &model, nil
+}
+
+func (d Datasource) GetType() string {
+	return string(d.Type)
+}
+
+func (d Datasource) GetAddr() string {
+	return fmt.Sprintf("%s:%d", d.Host, d.Port)
+}
+
+func (d Datasource) GetUsername() string {
+	if d.Username != nil {
+		return *d.Username
+	}
+	return ""
+}
+
+func (d Datasource) GetPassword() string {
+	if d.Password != nil {
+		return *d.Password
+	}
+	return ""
+}
+
+func (d Datasource) GetDatabase() string {
+	if d.Database != nil {
+		return *d.Database
+	}
+	return ""
 }

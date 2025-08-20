@@ -154,7 +154,7 @@
 
   defineExpose({
     triggerQuery: async () => {
-      await queryFormRef.value.submit();
+      search();
     },
   });
 </script>
@@ -184,6 +184,25 @@
   .table-container {
     height: 85%;
     width: 100%;
+    overflow: auto;
+  }
+
+  /**
+ * 消息组件-消息气泡-滚动条
+ */
+  .table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .table-container::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+  .table-container::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 4px;
+  }
+  .table-container::-webkit-scrollbar-thumb:hover {
+    background-color: transparent;
   }
 
   .pagination {

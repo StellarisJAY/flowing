@@ -27,7 +27,7 @@ func UploadDocument(ctx context.Context, req kb.UploadDocumentReq) error {
 		if knowledgeBase == nil {
 			return global.NewError(500, "知识库不存在", nil)
 		}
-		uri, err := repository.File().Upload(c, req.FileObj)
+		uri, err := repository.File().Upload(c, KnowledgeBaseCollectionName(knowledgeBase.Id), req.FileObj)
 		if err != nil {
 			return global.NewError(500, "上传文件失败", err)
 		}
@@ -58,7 +58,7 @@ func DeleteDocument(ctx context.Context, id int64) error {
 		if err := repository.DB(c).Delete(&kb.Document{}, "id = ?", id).Error; err != nil {
 			return global.NewError(500, "删除文档失败", err)
 		}
-		if err := repository.File().Delete(c, doc.Uri); err != nil {
+		if err := repository.File().Delete(c, KnowledgeBaseCollectionName(doc.KnowledgeBaseId), doc.Uri); err != nil {
 			return global.NewError(500, "删除文档失败", err)
 		}
 		return nil
@@ -70,7 +70,7 @@ func GetDownloadURL(ctx context.Context, id int64) (string, error) {
 	if err := repository.DB(ctx).First(&doc, "id = ?", id).Error; err != nil {
 		return "", global.NewError(500, "获取文档失败", err)
 	}
-	url, err := repository.File().TempDownloadURL(ctx, doc.Uri)
+	url, err := repository.File().TempDownloadURL(ctx, KnowledgeBaseCollectionName(doc.KnowledgeBaseId), doc.Uri)
 	if err != nil {
 		return "", global.NewError(500, "生成下载URL失败", err)
 	}

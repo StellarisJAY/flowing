@@ -5,6 +5,7 @@
       :records="records"
       :query-form-schema="queryFormSchema"
       @refresh="search"
+      :total="total"
       :pagination="true"
       ref="tableRef"
     >
@@ -29,7 +30,7 @@
       </template>
     </Table>
 
-    <UploadModal ref="uploadModalRef" :do-upload="uploadFile" @close="search" />
+    <UploadModal ref="uploadModalRef" :do-upload="uploadFile" @close="triggerQuery" />
     <FormModal
       ref="renameModalRef"
       :form-schema="renameFormSchema"
@@ -68,6 +69,7 @@
 
   const documentStore = useDocumentStore();
   const records = computed(() => documentStore.records);
+  const total = computed(() => documentStore.total);
   const uploadModalRef = ref();
   const renameModalRef = ref();
   const tableRef = ref();

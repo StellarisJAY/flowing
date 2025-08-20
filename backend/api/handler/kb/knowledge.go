@@ -5,6 +5,8 @@ import (
 	"flowing/global"
 	model "flowing/internal/model/kb"
 	service "flowing/internal/service/kb"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -40,4 +42,15 @@ func ListKnowledgeBase(c *gin.Context) {
 		panic(err)
 	}
 	c.JSON(200, common.PageResp(res, total))
+}
+
+func DeleteKnowledgeBase(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Query("id"), 10, 64)
+	if err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	if err := service.DeleteKnowledgeBase(c, id); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
 }

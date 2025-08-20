@@ -2,10 +2,12 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"flowing/internal/config"
 	"flowing/internal/repository/db"
 	"flowing/internal/repository/file"
 	rdb "flowing/internal/repository/redis"
+	"flowing/internal/repository/vector"
 	"flowing/internal/repository/vector/milvus"
 
 	"github.com/bwmarrin/snowflake"
@@ -87,4 +89,13 @@ func PingMilvus(address string, username, password string, dbName string) error 
 	}
 	defer store.Close()
 	return store.Ping()
+}
+
+func NewVectorStore(datasource vector.StoreDatasource) (vector.Store, error) {
+	switch datasource.GetType() {
+	case "milvus":
+		return milvus.NewStore(datasource.GetAddr(), datasource.GetUsername(), datasource.GetPassword(), datasource.GetDatabase())
+	default:
+		return nil, errors.New("not support type:" + datasource.GetType())
+	}
 }

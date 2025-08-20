@@ -44,8 +44,8 @@ type KnowledgeBaseQuery struct {
 	Name string `json:"name" form:"name"`
 }
 
-func CreateKnowledgeBase(ctx context.Context, model KnowledgeBase) error {
-	return repository.DB(ctx).Create(&model).Error
+func CreateKnowledgeBase(ctx context.Context, model *KnowledgeBase) error {
+	return repository.DB(ctx).Create(model).Error
 }
 
 func UpdateKnowledgeBase(ctx context.Context, model KnowledgeBase) error {

@@ -95,9 +95,10 @@ func InitRouter(e *gin.Engine) {
 	{
 		k := g.Group("/kb")
 		k.Use(middleware.Auth())
-		k.POST("/create", kb.CreateKnowledgeBase) // 创建知识库
-		k.GET("/list", kb.ListKnowledgeBase)      // 获取知识库列表
-		k.PUT("/update", kb.UpdateKnowledgeBase)  // 更新知识库
+		k.POST("/create", kb.CreateKnowledgeBase)   // 创建知识库
+		k.GET("/list", kb.ListKnowledgeBase)        // 获取知识库列表
+		k.PUT("/update", kb.UpdateKnowledgeBase)    // 更新知识库
+		k.DELETE("/delete", kb.DeleteKnowledgeBase) // 删除知识库
 	}
 	{
 		d := g.Group("/kb/doc")

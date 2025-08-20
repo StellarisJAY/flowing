@@ -14,7 +14,13 @@
     </template>
     <template #actions="{ item }">
       <SettingOutlined @click.stop="() => openModal(true, item)" />
-      <DeleteOutlined />
+      <Popconfirm
+        title="确认删除？删除知识库将删除所有文档(不可恢复)"
+        @confirm="() => deleteKnowledge(item.id)"
+        @click.stop=""
+      >
+        <DeleteOutlined />
+      </Popconfirm>
     </template>
   </CardList>
   <FormModal
@@ -32,6 +38,7 @@
   import FormModal from '@/components/Modal/FormModal.vue';
   import { computed, ref } from 'vue';
   import {
+    deleteKb,
     knowledgeFormRules,
     knowledgeFormSchema,
     searchFormSchema,
@@ -39,6 +46,8 @@
   } from './knowledge.data.js';
   import { SettingOutlined, DeleteOutlined } from '@ant-design/icons-vue';
   import { useRouter } from 'vue-router';
+  import { Popconfirm } from 'ant-design-vue';
+  import { useGlobalStore } from '@/stores/global.js';
 
   const cardListRef = ref();
   const knowledgeStore = useKnowledgeStore();
@@ -46,6 +55,7 @@
   const formModalRef = ref();
   const records = computed(() => knowledgeStore.records);
   const router = useRouter();
+  const globalStore = useGlobalStore();
 
   const openModal = (isUpdate, record) => {
     if (isUpdate) {
@@ -71,6 +81,13 @@
         knowledgeBaseId: id,
       },
     });
+  };
+
+  const deleteKnowledge = async (id) => {
+    globalStore.setLoading(true);
+    await deleteKb(id);
+    globalStore.setLoading(false);
+    await triggerQuery();
   };
 
   const triggerQuery = async () => {
