@@ -110,5 +110,6 @@ func InitRouter(e *gin.Engine) {
 		d.DELETE("/delete", kb.DeleteDocument)    // 删除文档
 		d.POST("/parse", kb.ParseDocument)        // 解析文档
 		d.POST("/cancel", kb.CancelParseDocument) // 取消解析文档
+		d.GET("/chunks", kb.ListChunks)           // 获取文档列表
 	}
 }

@@ -44,12 +44,14 @@ func CreateKnowledgeBase(ctx context.Context, req kb.CreateKnowledgeBaseReq) err
 		EmbeddingModel: req.EmbeddingModel,
 		Enable:         req.Enable,
 	}
+
 	return repository.Tx(ctx, func(c context.Context) error {
 		if err := kb.CreateKnowledgeBase(c, &model); err != nil {
 			return global.NewError(500, "创建知识库失败", err)
 		}
+		collName := KnowledgeBaseCollectionName(model.Id)
 		// 创建文件存储
-		if err := repository.File().CreateBucket(c, fmt.Sprintf("%s%d", CollectionNamePrefix, model.Id)); err != nil {
+		if err := repository.File().CreateBucket(c, collName); err != nil {
 			return global.NewError(500, "创建知识库失败", err)
 		}
 		// 获取向量库数据源连接
@@ -58,7 +60,8 @@ func CreateKnowledgeBase(ctx context.Context, req kb.CreateKnowledgeBaseReq) err
 			return global.NewError(500, "创建知识库失败", err)
 		}
 		// 创建向量库
-		if err := vectorStore.CreateCollection(c, fmt.Sprintf("%s%d", CollectionNamePrefix, model.Id)); err != nil {
+		// TODO 向量维度
+		if err := vectorStore.CreateCollection(c, collName, 1024); err != nil {
 			return global.NewError(500, "创建知识库失败", err)
 		}
 		return nil
@@ -135,4 +138,18 @@ func DeleteKnowledgeBase(ctx context.Context, id int64) error {
 		}
 		return nil
 	})
+}
+
+func GetEmbeddingModel(ctx context.Context, id int64) (*ai.ProviderModelDetail, error) {
+	var detail *ai.ProviderModelDetail
+	err := repository.DB(ctx).Table("ai_provider_model apm").
+		Joins("JOIN ai_provider ap on ap.id = apm.provider_id").
+		Select("apm.*, ap.provider_name, ap.provider_type, ap.provider_config").
+		Where("apm.id = ?", id).
+		First(&detail).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	return detail, nil
 }

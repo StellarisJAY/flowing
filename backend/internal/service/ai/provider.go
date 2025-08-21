@@ -50,6 +50,16 @@ func ValidateProviderConfig(providerType ai.ProviderType, data string) error {
 			return errors.New("baseUrl格式错误")
 		}
 		return nil
+	case ai.ProviderTypeDashscope:
+		config, err := provider.DashscopeFromJSON([]byte(data))
+		if err != nil {
+			return err
+		}
+		// 校验apiKey
+		if config.ApiKey == "" {
+			return errors.New("apiKey不能为空")
+		}
+		return nil
 	default:
 		return errors.New("不支持的提供方类型")
 	}

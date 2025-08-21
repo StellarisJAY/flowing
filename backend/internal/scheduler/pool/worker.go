@@ -26,10 +26,10 @@ func NewGoPoolWorker(size int, timeout time.Duration) (*GoPoolWorker, error) {
 
 func (g *GoPoolWorker) Submit(task scheduler.Task) error {
 	ctx, cancel := context.WithTimeout(context.Background(), g.timeout)
-	defer cancel()
 	g.tasks.Store(task.ID(), cancel)
 	return g.pool.Submit(func() {
 		defer func() {
+			cancel()
 			if err := recover(); err != nil {
 				slog.Error("go pool worker panic", "err", err)
 			}

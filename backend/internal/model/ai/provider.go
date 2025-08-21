@@ -2,6 +2,8 @@ package ai
 
 import (
 	"context"
+	"errors"
+	"flowing/internal/model/ai/provider"
 	"flowing/internal/model/common"
 	"flowing/internal/repository"
 	"flowing/internal/repository/db"
@@ -10,9 +12,9 @@ import (
 type ProviderType string
 
 const (
-	ProviderTypeOpenAI ProviderType = "openai" // OpenAI
-	ProviderTypeOllama ProviderType = "ollama" // Ollama
-	ProviderTypeTongyi ProviderType = "tongyi" // 通义
+	ProviderTypeOpenAI    ProviderType = "openai"    // OpenAI
+	ProviderTypeOllama    ProviderType = "ollama"    // Ollama
+	ProviderTypeDashscope ProviderType = "dashscope" // 通义
 )
 
 // Provider 模型提供方
@@ -62,4 +64,23 @@ func ListProviders(ctx context.Context, query ProviderQuery) ([]*Provider, int64
 		return nil, 0, err
 	}
 	return providers, total, nil
+}
+
+func GetProviderConfig(providerType ProviderType, config string) (any, error) {
+	switch providerType {
+	case ProviderTypeOpenAI:
+		cfg, err := provider.OpenAIFromJSON([]byte(config))
+		if err != nil {
+			return nil, err
+		}
+		return cfg, nil
+	case ProviderTypeDashscope:
+		cfg, err := provider.DashscopeFromJSON([]byte(config))
+		if err != nil {
+			return nil, err
+		}
+		return cfg, nil
+	default:
+		return nil, errors.New("不支持的提供方类型")
+	}
 }

@@ -4,7 +4,10 @@ import (
 	"context"
 	"flowing/global"
 	"flowing/internal/model/kb"
+	"flowing/internal/model/monitor"
 	"flowing/internal/repository"
+	"flowing/internal/repository/vector"
+	"strings"
 )
 
 func ListDocument(ctx context.Context, query kb.DocumentQuery) ([]*kb.Document, int64, error) {
@@ -33,11 +36,16 @@ func ListDocument(ctx context.Context, query kb.DocumentQuery) ([]*kb.Document, 
 }
 
 func UploadDocument(ctx context.Context, req kb.UploadDocumentReq) error {
+	index := strings.LastIndex(req.FileName, ".")
+	if index == -1 {
+		return global.NewError(500, "文件名称格式错误，必须包含文件扩展名", nil)
+	}
 	doc := &kb.Document{
 		OriginalName:    req.FileName,
 		KnowledgeBaseId: req.KnowledgeBaseId,
 		Size:            req.Size,
-		Type:            req.ContentType,
+		MIMEType:        req.ContentType,
+		Type:            req.FileName[index+1:],
 	}
 	return repository.Tx(ctx, func(c context.Context) error {
 		knowledgeBase, _ := kb.GetKnowledgeBase(ctx, req.KnowledgeBaseId)
@@ -92,4 +100,24 @@ func GetDownloadURL(ctx context.Context, id int64) (string, error) {
 		return "", global.NewError(500, "生成下载URL失败", err)
 	}
 	return url, nil
+}
+
+func ListChunks(ctx context.Context, query vector.ListSliceQuery) ([]vector.QueriedSlice, int64, error) {
+	var doc *kb.Document
+	if err := repository.DB(ctx).First(&doc, "id = ?", query.DocId).Error; err != nil {
+		return nil, 0, global.NewError(500, "获取文档失败", err)
+	}
+	knowledgeBase, err := kb.GetKnowledgeBase(ctx, doc.KnowledgeBaseId)
+	if err != nil {
+		return nil, 0, global.NewError(500, "获取文档失败", err)
+	}
+	datasource, err := monitor.GetDatasource(ctx, knowledgeBase.DatasourceId)
+	if err != nil {
+		return nil, 0, global.NewError(500, "获取文档失败", err)
+	}
+	store, err := repository.NewVectorStore(datasource)
+	if err != nil {
+		return nil, 0, global.NewError(500, "获取文档失败", err)
+	}
+	return store.ListSlices(ctx, KnowledgeBaseCollectionName(knowledgeBase.Id), query)
 }

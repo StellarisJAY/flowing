@@ -3,6 +3,7 @@ package milvus
 import (
 	"context"
 	"flowing/internal/repository/vector"
+	"fmt"
 	"time"
 
 	"github.com/milvus-io/milvus/client/v2/entity"
@@ -36,8 +37,8 @@ func (s *Store) Close() error {
 	return s.client.Close(context.Background())
 }
 
-func (s *Store) CreateCollection(ctx context.Context, name string) error {
-	schema, indexOptions := getCollectionSchema(name)
+func (s *Store) CreateCollection(ctx context.Context, name string, denseDims int64) error {
+	schema, indexOptions := getCollectionSchema(name, denseDims)
 	option := milvusclient.NewCreateCollectionOption(name, schema).WithIndexOptions(indexOptions...)
 	return s.client.CreateCollection(ctx, option)
 }
@@ -46,32 +47,106 @@ func (s *Store) DropCollection(ctx context.Context, name string) error {
 	return s.client.DropCollection(ctx, milvusclient.NewDropCollectionOption(name))
 }
 
-func (s *Store) Add(ctx context.Context, slices []vector.Slice) error {
-	// TODO implement me
-	panic("implement me")
+func (s *Store) Add(ctx context.Context, coll string, slices []vector.Slice) error {
+	rows := make([]any, len(slices))
+	for i, slice := range slices {
+		rows[i] = map[string]any{
+			"id":           slice.Id(),
+			"doc_id":       slice.DocId(),
+			"slice_id":     slice.Id(),
+			"content":      slice.Content(),
+			"dense_vector": slice.DenseVector(),
+			"metadata":     slice.Metadata(),
+		}
+	}
+	_, err := s.client.Insert(ctx, milvusclient.NewRowBasedInsertOption(coll, rows...))
+	return err
 }
 
-func (s *Store) Delete(ctx context.Context, slices []vector.Slice) error {
+func (s *Store) Delete(ctx context.Context, coll string, slices []vector.Slice) error {
 	//TODO implement me
 	panic("implement me")
 }
 
+func (s *Store) ListSlices(ctx context.Context, coll string, query vector.ListSliceQuery) ([]vector.QueriedSlice, int64, error) {
+
+	option := milvusclient.NewQueryOption(coll).WithFilter(fmt.Sprintf("doc_id == %d", query.DocId))
+	var total int64
+	var err error
+	var resultSet milvusclient.ResultSet
+
+	_, err = s.client.LoadCollection(ctx, milvusclient.NewLoadCollectionOption(coll))
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if query.Page {
+		totalOption := option.WithOutputFields("id")
+		totalResultSet, err := s.client.Query(ctx, totalOption)
+		if err != nil {
+			return nil, 0, err
+		}
+		total = int64(totalResultSet.ResultCount)
+		option = option.WithLimit(int(query.PageSize)).
+			WithOffset(int((query.PageNum-1)*query.PageSize)).
+			WithOutputFields("id", "doc_id", "slice_id", "content")
+		resultSet, err = s.client.Query(ctx, option)
+		if err != nil {
+			return nil, 0, err
+		}
+	} else {
+		resultSet, err = s.client.Query(ctx, option)
+		if err != nil {
+			return nil, 0, err
+		}
+		total = int64(resultSet.ResultCount)
+	}
+
+	return fromResultSetToQueryResult(resultSet), total, nil
+}
+
+func fromResultSetToQueryResult(resultSet milvusclient.ResultSet) []vector.QueriedSlice {
+	res := make([]vector.QueriedSlice, resultSet.Len())
+	idColumn := resultSet.GetColumn("id")
+	docIdColumn := resultSet.GetColumn("doc_id")
+	sliceIdColumn := resultSet.GetColumn("slice_id")
+	contentColumn := resultSet.GetColumn("content")
+	scores := resultSet.Scores
+	if len(scores) == 0 {
+		scores = make([]float32, resultSet.Len())
+	}
+	for i := 0; i < resultSet.Len(); i++ {
+		id, _ := idColumn.GetAsInt64(i)
+		docId, _ := docIdColumn.GetAsInt64(i)
+		sliceId, _ := sliceIdColumn.GetAsString(i)
+		content, _ := contentColumn.GetAsString(i)
+		res[i] = vector.QueriedSlice{
+			Id:      id,
+			DocId:   docId,
+			SliceId: sliceId,
+			Content: content,
+			Score:   float64(scores[i]),
+		}
+	}
+	return res
+}
+
 // getCollectionSchema 获取集合模式
-func getCollectionSchema(name string) (*entity.Schema, []milvusclient.CreateIndexOption) {
+func getCollectionSchema(name string, denseDims int64) (*entity.Schema, []milvusclient.CreateIndexOption) {
 	// 主键
 	pkField := entity.NewField().WithName("id").WithDataType(entity.FieldTypeInt64).WithIsPrimaryKey(true).
 		WithIsAutoID(true)
 	// 文档ID
 	docIdField := entity.NewField().WithName("doc_id").WithDataType(entity.FieldTypeInt64)
 	// 切片ID
-	sliceIdField := entity.NewField().WithName("slice_id").WithDataType(entity.FieldTypeInt64)
+	sliceIdField := entity.NewField().WithName("slice_id").WithDataType(entity.FieldTypeVarChar).WithMaxLength(128)
 	// 切片内容 (使用jieba分词器支持中文)
-	contentField := entity.NewField().WithName("content").WithDataType(entity.FieldTypeVarChar).WithMaxLength(1024).
+	contentField := entity.NewField().WithName("content").WithDataType(entity.FieldTypeVarChar).WithMaxLength(10240).
 		WithEnableAnalyzer(true).WithAnalyzerParams(map[string]any{
 		"tokenizer": "jieba",
 	})
 	// TODO 向量模型维度
-	denseField := entity.NewField().WithName("dense_vector").WithDataType(entity.FieldTypeFloatVector).WithDim(1536)
+	denseField := entity.NewField().WithName("dense_vector").WithDataType(entity.FieldTypeFloatVector).WithDim(denseDims)
 	// 元数据
 	metadataField := entity.NewField().WithName("metadata").WithDataType(entity.FieldTypeJSON)
 	// 稀疏向量

@@ -5,6 +5,7 @@ import (
 	"flowing/api/handler/common"
 	"flowing/global"
 	model "flowing/internal/model/kb"
+	"flowing/internal/repository/vector"
 	service "flowing/internal/service/kb"
 	"strconv"
 
@@ -114,4 +115,16 @@ func CancelParseDocument(c *gin.Context) {
 		panic(err)
 	}
 	c.JSON(200, common.Ok())
+}
+
+func ListChunks(c *gin.Context) {
+	var query vector.ListSliceQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	res, total, err := service.ListChunks(c, query)
+	if err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.PageResp(res, total))
 }

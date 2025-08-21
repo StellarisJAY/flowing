@@ -10,11 +10,12 @@ import (
 
 type Document struct {
 	common.BaseModel
-	OriginalName    string `json:"originalName" gorm:"type:varchar(255);not null"`
-	Type            string `json:"type" gorm:"type:varchar(255);not null"`
-	KnowledgeBaseId int64  `json:"knowledgeBaseId,string" gorm:"type:bigint;not null"`
-	Uri             string `json:"uri" gorm:"type:varchar(255);not null"`
-	Size            int64  `json:"size" gorm:"type:int;not null"`
+	OriginalName    string `json:"originalName" gorm:"type:varchar(255);not null"`     // 文档名称
+	Type            string `json:"type" gorm:"type:varchar(255);not null"`             // 文档后缀名类型
+	MIMEType        string `json:"mimeType" gorm:"type:varchar(255);not null"`         // 文档MIME类型
+	KnowledgeBaseId int64  `json:"knowledgeBaseId,string" gorm:"type:bigint;not null"` // 知识库ID
+	Uri             string `json:"uri" gorm:"type:varchar(255);not null"`              // 文档URI （如果是MINIO存储，则是文档的对象key）
+	Size            int64  `json:"size" gorm:"type:int;not null"`                      // 文档大小
 
 	Task *Task `json:"task" gorm:"-"`
 }

@@ -15,7 +15,6 @@ const (
 	TaskStatusEmbedding TaskStatus = "embedding" // 嵌入中
 	TaskStatusSuccess   TaskStatus = "success"   // 成功
 	TaskStatusFailed    TaskStatus = "failed"    // 失败
-	TaskStatusCancelled TaskStatus = "cancelled" // 已取消
 )
 
 // Task 知识库文档解析任务
@@ -49,10 +48,6 @@ func CreateTask(ctx context.Context, task *Task) error {
 	return repository.DB(ctx).Create(task).Error
 }
 
-func UpdateTask(ctx context.Context, task *Task) error {
-	return repository.DB(ctx).Model(task).Updates(task).Error
-}
-
 func ListTasks(ctx context.Context, docIds []int64) ([]*Task, error) {
 	var list []*Task
 	if err := repository.DB(ctx).Model(&Task{}).
@@ -64,10 +59,8 @@ func ListTasks(ctx context.Context, docIds []int64) ([]*Task, error) {
 	return list, nil
 }
 
-func UpdateNotCancelledTask(ctx context.Context, task *Task) error {
+func UpdateTask(ctx context.Context, task *Task) error {
 	return repository.DB(ctx).Model(task).
 		Where("id = ?", task.Id).
-		Where("status != ?", TaskStatusCancelled).
-		Where("status != ?", TaskStatusSuccess).
 		Updates(task).Error
 }
