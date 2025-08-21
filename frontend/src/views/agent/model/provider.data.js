@@ -7,6 +7,10 @@ export const providerTypeOptions = [
     label: 'OpenAI',
     value: 'openai',
   },
+  {
+    label: '通义千问/阿里云',
+    value: 'dashscope',
+  },
 ];
 
 export const queryFormSchema = [
@@ -39,7 +43,7 @@ export const providerFormSchema = [
     label: 'API密钥',
     name: 'apiKey',
     type: 'input',
-    hidden: (formState) => formState.providerType !== 'openai',
+    hidden: (formState) => formState.providerType !== 'openai' && formState.providerType !== 'dashscope',
   },
 ];
 

@@ -1,8 +1,10 @@
 <template>
   <div class="kb-detail">
     <div class="kb-sidebar">
-      <div class="kb-header"></div>
-      <div class="kb-menu">
+      <div class="kb-header">
+        <IconButton type="primary" icon="ArrowLeftOutlined" title="返回" @click="handleBack" style="width: 100%;"/>
+      </div>
+      <div class="kb-menu" v-if="route.name !== '知识库-文档列表-切块预览'">
         <Menu mode="vertical" :items="menuItems" :selected-keys="activeKey" @click="handleMenuClick" />
       </div>
     </div>
@@ -18,6 +20,7 @@
   import { computed, h } from 'vue';
   import { ReadOutlined, SearchOutlined, SettingOutlined } from '@ant-design/icons-vue';
   import {useRoute, useRouter} from 'vue-router';
+  import IconButton from '@/components/Button/IconButton.vue';
 
   const router = useRouter();
   const route = useRoute();
@@ -45,10 +48,16 @@
   const handleMenuClick = async (item) => {
     await router.replace({
       name: item.key,
-      query: query.value,
+      query: {
+        documentId: query.value.documentId,
+      },
     });
     activeKey.value = [item.key];
-  }
+  };
+
+  const handleBack = () => {
+    router.back();
+  };
 
 </script>
 <style scoped>

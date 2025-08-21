@@ -4,11 +4,19 @@ import {
   cancelParse,
   deleteDocument,
   getDownloadUrl,
+  listChunks,
   listDocument,
   parseDocument,
   renameDocument,
   uploadDocument,
 } from '@/api/ai/document.api.js';
+
+import iconPdf from '@/assets/svg/ext_pdf_icon.svg';
+import iconFile from '@/assets/svg/ext_file_generic_icon.svg';
+import iconDoc from '@/assets/svg/ext_doc_icon.svg';
+import iconDocx from '@/assets/svg/ext_docx_icon.svg';
+import iconMd from '@/assets/svg/ext_md_icon.svg';
+import iconTxt from '@/assets/svg/ext_txt_icon.svg';
 
 export const queryFormSchema = [
   {
@@ -21,19 +29,24 @@ export const queryFormSchema = [
 
 export const columns = [
   {
+    title: '',
+    dataIndex: 'icon',
+    key: 'icon',
+  },
+  {
     title: '文档名称',
     dataIndex: 'originalName',
     key: 'originalName',
   },
   {
-    title: '文档类型',
-    dataIndex: 'type',
-    key: 'type',
-  },
-  {
     title: '文档大小',
     dataIndex: 'size',
     key: 'size',
+  },
+  {
+    title: '切片数量',
+    dataIndex: 'sliceCount',
+    key: 'sliceCount',
   },
   {
     title: '解析状态',
@@ -108,6 +121,49 @@ export const cancel = async (id) => {
     await cancelParse(id);
   } catch {
     message.error('取消解析失败');
+  }
+};
+
+export const isTaskFailed = (task) => {
+  return task?.status === 'failed';
+};
+
+export const isTaskSuccess = (task) => {
+  return task?.status === 'success';
+};
+
+export const isTaskRunning = (task) => {
+  return task?.status === 'new' || task?.status === 'slicing' || task?.status === 'embedding';
+};
+
+export const getDocumentSuffix = (record) => {
+  return record.originalName.split('.').pop();
+};
+
+export const getDocumentIcon = (record) => {
+  const suffix = getDocumentSuffix(record);
+  switch (suffix) {
+    case 'pdf':
+      return iconPdf;
+    case 'doc':
+      return iconDoc;
+    case 'docx':
+      return iconDocx;
+    case 'md':
+      return iconMd;
+    case 'txt':
+      return iconTxt;
+    default:
+      return iconFile;
+  }
+};
+
+export const listDocChunks = async (query) => {
+  try {
+    const res = await listChunks(query);
+    console.log(res);
+  } catch {
+    message.error('获取文档切片失败');
   }
 };
 

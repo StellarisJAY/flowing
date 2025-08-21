@@ -13,6 +13,9 @@
         <IconButton type="primary" title="上传文档" icon="PlusOutlined" @click="openUploadModal" />
       </template>
       <template #bodyCell="{ column, record }">
+        <div v-if="column.dataIndex === 'icon'">
+          <img :src="getDocumentIcon(record)" alt="icon" style="width: 32px; height: 32px" />
+        </div>
         <div
           v-if="column.dataIndex === 'actions'"
           style="display: flex; justify-content: flex-start; gap: 10px"
@@ -22,35 +25,43 @@
           >
           <Button
             type="link"
-            v-else-if="
-              record.task.status === 'failed' ||
-              record.task.status === 'cancelled' ||
-              record.task.status === 'success'
-            "
+            v-else-if="isTaskSuccess(record.task) || isTaskFailed(record.task)"
             @click="() => handleParse(record)"
             >重新解析</Button
           >
           <Button
             type="link"
-            v-else-if="record.task.status !== 'success'"
+            v-else-if="isTaskRunning(record.task)"
             @click="() => handleCancel(record)"
-            >取消解析</Button>
+            >取消解析</Button
+          >
           <Button type="link" @click="() => download(record)">下载</Button>
           <Button type="link" @click="() => openRenameModal(record)">重命名</Button>
-          <ConfirmButton title="删除" @confirm="() => handleDelete(record)" />
+          <ConfirmButton
+            title="删除"
+            v-if="!isTaskRunning(record.task)"
+            @confirm="() => handleDelete(record)"
+          />
         </div>
         <div v-if="column.dataIndex === 'size'">
           {{ formatFileSize(record.size) }}
         </div>
-        <Button type="link" v-if="column.dataIndex === 'originalName'">{{
-          record.originalName
-        }}</Button>
+        <Button
+          type="link"
+          v-if="column.dataIndex === 'originalName'"
+          @click="() => handlePreview(record)"
+          >{{ record.originalName }}</Button
+        >
+        <div v-if="column.dataIndex === 'sliceCount'">{{
+          record.task ? record.task.sliceCount : '-'
+        }}</div>
         <div v-if="column.dataIndex === 'task'">
-          <Tag v-if="!record.task">未解析</Tag>
-          <Tag v-else-if="record.task.status === 'success'" color="green">已解析</Tag>
-          <Tag v-else-if="record.task.status === 'failed'" color="red">解析失败</Tag>
-          <Tag v-else-if="record.task.status === 'cancelled'" color="default">已取消</Tag>
-          <Tag v-else>解析中...</Tag>
+          <Tooltip title="解析状态，点击查看日志">
+            <Tag v-if="!record.task">未解析</Tag>
+            <Tag v-else-if="isTaskSuccess(record.task)" color="green" @click="()=>openTaskLogModal(record)">已解析</Tag>
+            <Tag v-else-if="isTaskFailed(record.task)" color="red" @click="()=>openTaskLogModal(record)">解析失败</Tag>
+            <Tag v-else-if="isTaskRunning(record.task)" color="default" @click="()=>openTaskLogModal(record)">解析中...</Tag>
+          </Tooltip>
         </div>
       </template>
     </Table>
@@ -64,6 +75,7 @@
       :submit="handleRename"
       @close="triggerQuery"
     />
+    <TaskLogModal ref="taskLogModalRef" />
   </div>
 </template>
 
@@ -80,15 +92,23 @@
     renameFormSchema,
     renameFormRules,
     deleteDoc,
-    parse, cancel,
+    parse,
+    cancel,
+    isTaskSuccess,
+    isTaskFailed,
+    isTaskRunning,
+    getDocumentIcon,
   } from '@/views/agent/knowledge/document/document.data.js';
   import IconButton from '@/components/Button/IconButton.vue';
   import { useRoute } from 'vue-router';
   import UploadModal from '@/components/Modal/UploadModal.vue';
-  import { Button, Tag } from 'ant-design-vue';
+  import { Button, Tag, Tooltip } from 'ant-design-vue';
   import ConfirmButton from '@/components/Button/ConfirmButton.vue';
   import FormModal from '@/components/Modal/FormModal.vue';
+  import { useRouter } from 'vue-router';
+  import TaskLogModal from '@/views/agent/knowledge/document/TaskLogModal.vue';
 
+  const router = useRouter();
   const knowledgeBaseId = ref('');
   const route = useRoute();
   knowledgeBaseId.value = route.query['knowledgeBaseId'];
@@ -101,6 +121,7 @@
   const tableRef = ref();
   const renameFormState = computed(() => documentStore.renameFormState);
   const interval = ref();
+  const taskLogModalRef = ref();
 
   const search = async (query) => {
     const data = {
@@ -154,13 +175,27 @@
     await triggerQuery();
   };
 
-  // onMounted(async () => {
-  //   interval.value = setInterval(async () => {
-  //     await triggerQuery();
-  //   }, 5000);
-  // });
-  //
-  // onUnmounted(() => {
-  //   clearInterval(interval.value);
-  // })
+  const handlePreview = (record) => {
+    router.push({
+      path: '/agent/knowledge/document/chunks',
+      query: {
+        id: record.id,
+      }
+    });
+  };
+
+  const openTaskLogModal = (record) => {
+    if (!record.task) return;
+    taskLogModalRef.value.open(record.task);
+  };
+
+  onMounted(async () => {
+    interval.value = setInterval(async () => {
+      await triggerQuery();
+    }, 5000);
+  });
+
+  onUnmounted(() => {
+    clearInterval(interval.value);
+  });
 </script>

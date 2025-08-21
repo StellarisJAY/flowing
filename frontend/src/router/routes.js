@@ -15,5 +15,6 @@ export const ViewMap = {
   "/views/agent/knowledge/document/index": ()=> import("@/views/agent/knowledge/document/index.vue"),
   "/views/agent/knowledge/detail/index": ()=> import("@/views/agent/knowledge/detail/index.vue"),
   "/views/agent/knowledge/retrieve/index": ()=> import("@/views/agent/knowledge/retrieve/index.vue"),
+  "/views/agent/knowledge/document/chunks/index": ()=> import("@/views/agent/knowledge/document/chunks/index.vue"),
   // "/views/agent/knowledge/configuration/index": ()=> import("@/views/agent/knowledge/configuration/index.vue"),
 };

@@ -13,3 +13,5 @@ export const deleteDocument = (id) => http.delete('/kb/doc/delete', { params: { 
 export const parseDocument = (data) => http.post('/kb/doc/parse', data);
 
 export const cancelParse = (id) => http.post(`/kb/doc/cancel?id=${id}`);
+
+export const listChunks = (query) => http.get('/kb/doc/chunks', { params: query });

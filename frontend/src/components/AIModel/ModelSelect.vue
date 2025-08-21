@@ -20,6 +20,9 @@ const value = defineModel('value', {
 const list = async (params) => {
   params.modelType = props.modelType;
   const { data } = await listModel(params);
+  data?.forEach(item=>{
+    item.modelName = item.providerName + '/' + item.modelName;
+  });
   return data;
 };
 </script>

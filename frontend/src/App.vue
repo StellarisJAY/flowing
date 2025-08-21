@@ -8,7 +8,7 @@ const loading = computed(() => globalStore.loading);
 </script>
 
 <template>
-  <Spin :spinning="loading">
+  <Spin :spinning="loading" tip="拼命加载中..." size="large">
     <RouterView />
   </Spin>
 </template>
