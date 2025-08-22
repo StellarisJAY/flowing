@@ -109,7 +109,7 @@ func GetRoleMenus(ctx context.Context, roleId int64) (*sysmodel.RoleMenuResp, er
 			RoleId:   roleId,
 			Name:     menu.MenuName,
 			Key:      menu.Id,
-			ParentId: menu.ParentId,
+			ParentId: *menu.ParentId,
 		}
 	}
 	// 构建菜单树
