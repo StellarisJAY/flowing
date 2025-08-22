@@ -13,6 +13,7 @@
     </Layout.Header>
 
     <Tabs
+      v-if="!hideTabs"
       :activeKey="activeTab"
       type="editable-card"
       @edit="editTabs"
@@ -36,12 +37,12 @@
       </div>
     </Layout.Content>
 
-    <FloatButton type="primary" tooltip="AI助手" @click="openAiHelperDrawer">
+    <FloatButton type="primary" tooltip="AI助手" @click="openAiHelperDrawer" v-if="showChatButton">
       <template #icon>
         <MessageOutlined />
       </template>
     </FloatButton>
-    <ChatDrawer ref="aiHelperDrawer" title="AI助手 (即将上线)" />
+    <ChatDrawer ref="aiHelperDrawer" title="AI助手 (即将上线)" v-if="showChatButton" />
   </Layout>
 </template>
 
@@ -53,14 +54,16 @@
   import { useUserStore } from '@/stores/user.js';
   import { MessageOutlined } from '@ant-design/icons-vue';
   import ChatDrawer from '@/components/Chat/ChatDrawer.vue';
+  import {useRoute} from 'vue-router';
 
+  const route = useRoute();
   const router = useRouter();
   const permissionStore = usePermissionStore();
   const userStore = useUserStore();
   const menuItems = computed(() => permissionStore.navMenus);
   const tabPanes = computed(() => userStore.tabPanes);
   const activeTab = computed(() => userStore.activeTab);
-
+  const hideTabs = computed(()=>route.meta.hideTab);
   const aiHelperDrawer = ref();
 
   const editTabs = (key) => {
@@ -79,6 +82,10 @@
   const openAiHelperDrawer = () => {
     aiHelperDrawer.value.open();
   };
+
+  const showChatButton = computed(()=>{
+    return route.name !== '聊天页面';
+  });
 </script>
 
 <style scoped>

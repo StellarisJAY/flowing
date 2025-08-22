@@ -1,5 +1,5 @@
 <template>
-  <Button :type="type" :danger="danger" :size="size" @click="() => emits('click')" :icon="h(VueIcon[icon])">
+  <Button :shape="shape" :type="type" :danger="danger" :size="size" @click="() => emits('click')" :icon="h(VueIcon[icon])">
     {{title}}
   </Button>
 </template>
@@ -30,6 +30,10 @@ defineProps({
     type: String,
     default: 'medium',
   },
+  shape: {
+    type: String,
+    default: 'default',
+  }
 });
 
 const emits = defineEmits(['click']);

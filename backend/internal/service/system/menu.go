@@ -20,7 +20,7 @@ func CreateMenu(ctx context.Context, menu sysmodel.CreateMenuReq) error {
 		Type:       menu.Type,
 		Path:       menu.Path,
 		Component:  menu.Component,
-		ParentId:   menu.ParentId,
+		ParentId:   &menu.ParentId,
 		OrderNum:   menu.OrderNum,
 		ActionCode: menu.ActionCode,
 		ShowInNav:  menu.ShowInNav,
@@ -41,11 +41,11 @@ func buildMenuTree(menus []*sysmodel.Menu, excludeButtons bool) []*sysmodel.Menu
 		if excludeButtons && menu.Type == sysmodel.MenuTypeButton {
 			continue
 		}
-		if menu.ParentId == 0 {
+		if *menu.ParentId == 0 {
 			rootMenus = append(rootMenus, menu)
 			continue
 		}
-		parentMenu, ok := menuMap[menu.ParentId]
+		parentMenu, ok := menuMap[*menu.ParentId]
 		if ok {
 			parentMenu.Children = append(parentMenu.Children, menu)
 		} else {
@@ -58,7 +58,7 @@ func buildMenuTree(menus []*sysmodel.Menu, excludeButtons bool) []*sysmodel.Menu
 func getAllChildMenuIds(menus []*sysmodel.Menu, parentId int64) []int64 {
 	var childIds []int64
 	for _, menu := range menus {
-		if menu.ParentId == parentId {
+		if *menu.ParentId == parentId {
 			childIds = append(childIds, menu.Id)
 			childIds = append(childIds, getAllChildMenuIds(menus, menu.Id)...)
 		}
@@ -86,7 +86,7 @@ func UpdateMenu(ctx context.Context, req sysmodel.UpdateMenuReq) error {
 		Type:       req.Type,
 		Path:       req.Path,
 		Component:  req.Component,
-		ParentId:   req.ParentId,
+		ParentId:   &req.ParentId,
 		OrderNum:   req.OrderNum,
 		ActionCode: req.ActionCode,
 		ShowInNav:  req.ShowInNav,

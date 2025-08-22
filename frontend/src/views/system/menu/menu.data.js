@@ -41,7 +41,7 @@ const getParentMenuOptions = async () => {
     const options = buildOptions(data);
     options.unshift({
       label: '根目录',
-      value: 0,
+      value: '0',
     });
     return options;
   } catch {
