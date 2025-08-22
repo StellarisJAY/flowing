@@ -20,6 +20,14 @@ type EmbedOption struct {
 
 const embedBatchSize = 10
 
+func EmbedQuery(ctx context.Context, query string, opt *EmbedOption) ([]float64, error) {
+	embeddings, err := Embed(ctx, []*schema.Document{{Content: query}}, opt)
+	if err != nil {
+		return nil, err
+	}
+	return embeddings[0], nil
+}
+
 func Embed(ctx context.Context, docs []*schema.Document, opt *EmbedOption) ([][]float64, error) {
 	texts := make([]string, len(docs))
 	for i, doc := range docs {

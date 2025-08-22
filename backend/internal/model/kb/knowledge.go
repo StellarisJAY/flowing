@@ -44,6 +44,27 @@ type KnowledgeBaseQuery struct {
 	Name string `json:"name" form:"name"`
 }
 
+type KnowledgeQueryReq struct {
+	KnowledgeBaseId int64   `json:"knowledgeBaseId,string" binding:"required"`
+	QueryText       string  `json:"queryText" binding:"required"`
+	TopK            int     `json:"topK" binding:"required"`
+	SearchType      string  `json:"searchType" binding:"required"`
+	HybridType      string  `json:"hybridType"`
+	Weight          float64 `json:"weight"`
+	RerankModel     int64   `json:"rerankModel,string"`
+	Threshold       float64 `json:"threshold"`
+}
+
+type QueriedSlice struct {
+	SliceId       string  `json:"sliceId"`       // 切片ID
+	DocId         int64   `json:"docId"`         // 文档ID
+	Content       string  `json:"content"`       // 切片内容
+	Score         float64 `json:"score"`         // 相似度得分
+	VectorScore   float64 `json:"vectorScore"`   // 向量相似度得分
+	FulltextScore float64 `json:"fulltextScore"` // 全文搜索相似度得分
+	DocumentName  string  `json:"documentName"`  // 文档名称
+}
+
 func CreateKnowledgeBase(ctx context.Context, model *KnowledgeBase) error {
 	return repository.DB(ctx).Create(model).Error
 }

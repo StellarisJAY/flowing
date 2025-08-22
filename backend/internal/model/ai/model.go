@@ -18,11 +18,10 @@ const (
 // ProviderModel 模型提供方模型
 type ProviderModel struct {
 	common.BaseModel
-	ProviderId   int64     `json:"providerId,string" gorm:"column:provider_id;type:bigint;not null"`
-	ModelName    string    `json:"modelName" gorm:"column:model_name"`        // 模型名称
-	ModelType    ModelType `json:"modelType" gorm:"column:model_type"`        // 模型类型
-	Enable       *bool     `json:"enable" gorm:"column:enable;default:false"` // 是否启用
-	ProviderName string    `json:"providerName"`                              // 模型提供方名称
+	ProviderId int64     `json:"providerId,string" gorm:"column:provider_id;type:bigint;not null"`
+	ModelName  string    `json:"modelName" gorm:"column:model_name"`        // 模型名称
+	ModelType  ModelType `json:"modelType" gorm:"column:model_type"`        // 模型类型
+	Enable     *bool     `json:"enable" gorm:"column:enable;default:false"` // 是否启用
 }
 
 func (a *ProviderModel) TableName() string {
@@ -55,6 +54,16 @@ type ProviderModelDetail struct {
 	ProviderConfig string       `json:"providerConfig" gorm:"column:provider_config"` // 模型提供方配置
 }
 
+type ProviderModelListVo struct {
+	common.BaseModel
+	ProviderId   int64        `json:"providerId,string" gorm:"column:provider_id"`
+	ModelName    string       `json:"modelName" gorm:"column:model_name"`        // 模型名称
+	ModelType    ModelType    `json:"modelType" gorm:"column:model_type"`        // 模型类型
+	Enable       *bool        `json:"enable" gorm:"column:enable;default:false"` // 是否启用
+	ProviderName string       `json:"providerName" gorm:"column:provider_name"`  // 模型提供方名称
+	ProviderType ProviderType `json:"providerType" gorm:"column:provider_type"`  // 模型提供方类型
+}
+
 func CreateProviderModel(ctx context.Context, model ProviderModel) error {
 	return repository.DB(ctx).Create(&model).Error
 }
@@ -74,12 +83,12 @@ func GetProviderModel(ctx context.Context, id int64) (*ProviderModel, error) {
 	return model, err
 }
 
-func ListProviderModel(ctx context.Context, query ProviderModelQuery) ([]*ProviderModel, int64, error) {
-	var models []*ProviderModel
+func ListProviderModel(ctx context.Context, query ProviderModelQuery) ([]*ProviderModelListVo, int64, error) {
+	var models []*ProviderModelListVo
 	var total int64
-	d := repository.DB(ctx).Model(&ProviderModel{}).
-		Joins("JOIN ai_provider p ON p.id = ai_provider_model.provider_id").
-		Select("ai_provider_model.*, p.provider_name as provider_name")
+	d := repository.DB(ctx).Table("ai_provider_model apm").
+		Joins("JOIN ai_provider ap ON ap.id = apm.provider_id").
+		Select("apm.*, ap.provider_name as provider_name")
 	if query.ProviderId != 0 {
 		d = d.Where("provider_id = ?", query.ProviderId)
 	}

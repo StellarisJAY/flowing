@@ -2,6 +2,7 @@ package milvus
 
 import (
 	"context"
+	"errors"
 	"flowing/internal/repository/vector"
 	"fmt"
 	"time"
@@ -121,14 +122,98 @@ func fromResultSetToQueryResult(resultSet milvusclient.ResultSet) []vector.Queri
 		sliceId, _ := sliceIdColumn.GetAsString(i)
 		content, _ := contentColumn.GetAsString(i)
 		res[i] = vector.QueriedSlice{
-			Id:      id,
-			DocId:   docId,
-			SliceId: sliceId,
-			Content: content,
-			Score:   float64(scores[i]),
+			Id:            id,
+			DocId:         docId,
+			SliceId:       sliceId,
+			Content:       content,
+			Score:         float64(scores[i]),
+			VectorScore:   float64(scores[i]),
+			FulltextScore: float64(scores[i]),
 		}
 	}
 	return res
+}
+
+func (s *Store) Search(ctx context.Context, coll string, req vector.SearchReq) ([]vector.QueriedSlice, error) {
+	var resultSet []milvusclient.ResultSet
+	var err error
+	switch req.Type {
+	case vector.SearchTypeFulltext:
+		resultSet, err = s.fulltextSearch(ctx, coll, req)
+	case vector.SearchTypeVector:
+		resultSet, err = s.vectorSearch(ctx, coll, req)
+	case vector.SearchTypeHybrid:
+		resultSet, err = s.hybridSearch(ctx, coll, req)
+	default:
+		return nil, errors.New("search type not supported")
+	}
+	if err != nil {
+		return nil, err
+	}
+	res := fromResultSetToQueryResult(resultSet[0])
+	return res, nil
+}
+
+// fulltextSearch 全文搜索
+func (s *Store) fulltextSearch(ctx context.Context, coll string, req vector.SearchReq) ([]milvusclient.ResultSet, error) {
+	annSearchParams := index.NewCustomAnnParam()
+	annSearchParams.WithExtraParam("drop_ratio_search", 0.2)
+	option := milvusclient.NewSearchOption(coll, req.TopK, []entity.Vector{entity.Text(req.Text)}).
+		WithANNSField("sparse_vector").                         //  ANN搜索字段
+		WithAnnParam(annSearchParams).                          // ANN搜索参数
+		WithOutputFields("id", "doc_id", "slice_id", "content") // 输出字段
+	resultSets, err := s.client.Search(ctx, option)
+	if err != nil {
+		return nil, err
+	}
+	return resultSets, nil
+}
+
+// vectorSearch 向量搜索
+func (s *Store) vectorSearch(ctx context.Context, coll string, req vector.SearchReq) ([]milvusclient.ResultSet, error) {
+	annParam := index.NewCustomAnnParam()
+	// 查询范围：req.Threshold ~ 1.0
+	annParam.WithRangeFilter(1.0)
+	annParam.WithRadius(req.Threshold)
+	option := milvusclient.NewSearchOption(coll, req.TopK, []entity.Vector{entity.FloatVector(req.Embedding)}).
+		WithAnnParam(annParam).
+		WithANNSField("dense_vector").
+		WithOutputFields("id", "doc_id", "slice_id", "content")
+	resultSets, err := s.client.Search(ctx, option)
+	if err != nil {
+		return nil, err
+	}
+	return resultSets, nil
+}
+
+func (s *Store) hybridSearch(ctx context.Context, coll string, req vector.SearchReq) ([]milvusclient.ResultSet, error) {
+	queryText := entity.Text(req.Text)
+	queryVector := entity.FloatVector(req.Embedding)
+	// 全文搜索参数
+	ftParam := index.NewSparseAnnParam()
+	ftParam.WithDropRatio(0.2)
+	ftReq := milvusclient.NewAnnRequest("sparse_vector", req.TopK, queryText).
+		WithAnnParam(ftParam)
+	// 向量搜索参数
+	vecParam := index.NewIvfAnnParam(10)
+	vecParam.WithRangeFilter(1.0)
+	vecParam.WithRadius(req.Threshold)
+	vecReq := milvusclient.NewAnnRequest("dense_vector", req.TopK, queryVector).WithAnnParam(vecParam)
+	// 混合搜索option
+	option := milvusclient.NewHybridSearchOption(coll, req.TopK, ftReq, vecReq).
+		WithOutputFields("id", "doc_id", "slice_id", "content")
+
+	if req.HybridType == vector.HybridTypeWeight {
+		// 权重混合排序
+		reranker := milvusclient.NewWeightedReranker([]float64{1 - req.Weight, req.Weight})
+		option = option.WithReranker(reranker)
+	}
+	// 混合搜索
+	resultSets, err := s.client.HybridSearch(ctx, option)
+	if err != nil {
+		return nil, err
+	}
+	return resultSets, nil
 }
 
 // getCollectionSchema 获取集合模式

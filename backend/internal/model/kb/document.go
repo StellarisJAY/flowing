@@ -67,3 +67,19 @@ func GetDocument(ctx context.Context, id int64) (*Document, error) {
 	}
 	return document, nil
 }
+
+type DocumentName struct {
+	Id   int64  `json:"id,string"`
+	Name string `json:"name"`
+}
+
+func GetDocumentNames(ctx context.Context, docIds []int64) ([]DocumentName, error) {
+	var list []DocumentName
+	if err := repository.DB(ctx).Model(&Document{}).
+		Where("id IN ?", docIds).
+		Select("id, original_name as name").
+		Find(&list).Error; err != nil {
+		return nil, err
+	}
+	return list, nil
+}

@@ -64,3 +64,7 @@ func UpdateTask(ctx context.Context, task *Task) error {
 		Where("id = ?", task.Id).
 		Updates(task).Error
 }
+
+func DeleteTasksInKb(ctx context.Context, kbId int64) error {
+	return repository.DB(ctx).Delete(&Task{}, "knowledge_base_id = ?", kbId).Error
+}

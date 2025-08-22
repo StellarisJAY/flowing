@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 	"flowing/global"
+	"flowing/internal/docprocess"
 	"flowing/internal/model/ai"
 	"flowing/internal/model/common"
 	"flowing/internal/model/kb"
 	"flowing/internal/model/monitor"
 	"flowing/internal/repository"
+	"flowing/internal/repository/vector"
 	"fmt"
+	"slices"
 
 	"gorm.io/gorm"
 )
@@ -107,7 +110,10 @@ func DeleteKnowledgeBase(ctx context.Context, id int64) error {
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return global.NewError(500, "删除知识库失败", err)
 		}
-
+		// 删除任务
+		if err := kb.DeleteTasksInKb(c, id); err != nil {
+			return global.NewError(500, "删除知识库失败", err)
+		}
 		// 删除文档
 		if err := repository.DB(c).Where("knowledge_base_id = ?", id).Delete(&kb.Document{}).Error; err != nil {
 			return global.NewError(500, "删除知识库失败", err)
@@ -152,4 +158,97 @@ func GetEmbeddingModel(ctx context.Context, id int64) (*ai.ProviderModelDetail, 
 		return nil, err
 	}
 	return detail, nil
+}
+
+func Search(ctx context.Context, req kb.KnowledgeQueryReq) ([]*kb.QueriedSlice, error) {
+	// 获取知识库详情
+	base, err := kb.GetKnowledgeBase(ctx, req.KnowledgeBaseId)
+	if err != nil {
+		return nil, global.NewError(500, "搜索知识库失败", err)
+	}
+	// 获取数据源
+	datasource, err := monitor.GetDatasource(ctx, base.DatasourceId)
+	if err != nil {
+		return nil, global.NewError(500, "搜索知识库失败", err)
+	}
+	// 获取向量库
+	vectorStore, err := repository.NewVectorStore(datasource)
+	if err != nil {
+		return nil, global.NewError(500, "搜索知识库失败", err)
+	}
+	// 获取嵌入模型
+	modelDetail, err := GetEmbeddingModel(ctx, base.EmbeddingModel)
+	if err != nil {
+		return nil, global.NewError(500, "搜索知识库失败", err)
+	}
+
+	var embedding []float32
+	searchType := vector.SearchType(req.SearchType)
+	hybridType := vector.HybridType(req.HybridType)
+
+	// 生成查询向量
+	if searchType == vector.SearchTypeVector || searchType == vector.SearchTypeHybrid {
+		embedding64, err := docprocess.EmbedQuery(ctx, req.QueryText, &docprocess.EmbedOption{
+			ProviderType: modelDetail.ProviderType,
+			ModelName:    modelDetail.ModelName,
+			Config:       modelDetail.ProviderConfig,
+		})
+		if err != nil {
+			return nil, global.NewError(500, "搜索知识库失败", err)
+		}
+		// 转换为float32
+		embedding = make([]float32, len(embedding64))
+		for i, v := range embedding64 {
+			embedding[i] = float32(v)
+		}
+	}
+
+	// 搜索
+	collectionName := fmt.Sprintf("%s%d", CollectionNamePrefix, req.KnowledgeBaseId)
+	chunks, err := vectorStore.Search(ctx, collectionName, vector.SearchReq{
+		Text:       req.QueryText,
+		Embedding:  embedding,
+		Type:       searchType,
+		HybridType: hybridType,
+		TopK:       req.TopK,
+		Weight:     req.Weight,
+		Threshold:  req.Threshold,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取文档名称
+	docIds := make([]int64, 0)
+	for _, chunk := range chunks {
+		docIds = append(docIds, chunk.DocId)
+	}
+	// 去重id
+	docIds = slices.Compact(docIds)
+	docNames, err := kb.GetDocumentNames(ctx, docIds)
+	if err != nil {
+		return nil, err
+	}
+	// 文档名称map
+	docNameMap := make(map[int64]string)
+	for _, doc := range docNames {
+		docNameMap[doc.Id] = doc.Name
+	}
+
+	result := make([]*kb.QueriedSlice, 0, len(chunks))
+
+	// 文档名称
+	for _, chunk := range chunks {
+		result = append(result, &kb.QueriedSlice{
+			SliceId:       chunk.SliceId,
+			DocId:         chunk.DocId,
+			Content:       chunk.Content,
+			Score:         chunk.VectorScore,
+			VectorScore:   chunk.VectorScore,
+			FulltextScore: chunk.FulltextScore,
+			DocumentName:  docNameMap[chunk.DocId],
+		})
+	}
+	// TODO 重排序
+	return result, nil
 }

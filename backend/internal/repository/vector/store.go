@@ -30,11 +30,38 @@ type ListSliceQuery struct {
 }
 
 type QueriedSlice struct {
-	Id      int64   `json:"id"`
-	DocId   int64   `json:"docId"`
-	SliceId string  `json:"sliceId"`
-	Content string  `json:"content"`
-	Score   float64 `json:"score"`
+	Id            int64   `json:"id"`            // 主键ID
+	DocId         int64   `json:"docId"`         // 文档ID
+	SliceId       string  `json:"sliceId"`       // 切片ID
+	Content       string  `json:"content"`       // 切片内容
+	Score         float64 `json:"score"`         // 相似度得分
+	VectorScore   float64 `json:"vectorScore"`   // 向量相似度得分
+	FulltextScore float64 `json:"fulltextScore"` // 全文搜索相似度得分
+}
+
+type SearchType string
+
+const (
+	SearchTypeFulltext SearchType = "fulltext"
+	SearchTypeVector   SearchType = "vector"
+	SearchTypeHybrid   SearchType = "hybrid"
+)
+
+type HybridType string
+
+const (
+	HybridTypeWeight HybridType = "weight"
+	HybridTypeRerank HybridType = "rerank"
+)
+
+type SearchReq struct {
+	Text       string     // 查询文本
+	TopK       int        // TopK
+	Type       SearchType // 搜索类型: fulltext, vector, hybrid
+	Threshold  float64    // 相似度阈值
+	HybridType HybridType // 混合搜索类型: weight, rerank
+	Weight     float64    // 混合搜索向量权重
+	Embedding  []float32  // 查询文本向量
 }
 
 type Store interface {
@@ -45,4 +72,5 @@ type Store interface {
 	Add(ctx context.Context, coll string, slices []Slice) error                                       // 添加切片
 	Delete(ctx context.Context, coll string, slices []Slice) error                                    // 删除切片
 	ListSlices(ctx context.Context, coll string, query ListSliceQuery) ([]QueriedSlice, int64, error) // 列表切片
+	Search(ctx context.Context, coll string, req SearchReq) ([]QueriedSlice, error)
 }

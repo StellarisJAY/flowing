@@ -1,0 +1,332 @@
+{
+    "providers": [
+        {
+            "name": "OpenAI",
+            "type": "openai",
+            "models": [
+                {
+                    "modelName": "gpt-5",
+                    "maxTokens": 400000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "gpt-5-mini",
+                    "maxTokens": 400000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "gpt-5-nano",
+                    "maxTokens": 400000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "gpt-5-chat-latest",
+                    "maxTokens": 400000,
+                    "modelType": "llm",
+                    "functionCall": false
+                },
+                {
+                    "modelName": "gpt-4.1",
+                    "maxTokens": 1047576,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "gpt-4.1-mini",
+                    "maxTokens": 1047576,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "o4-mini",
+                    "maxTokens": 200000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "o4-mini-high",
+                    "maxTokens": 200000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "gpt-4o-mini",
+                    "maxTokens": 128000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "gpt-4o",
+                    "maxTokens": 128000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "gpt-3.5-turbo",
+                    "tags": "LLM,CHAT,4K",
+                    "maxTokens": 4096,
+                    "modelType": "llm",
+                    "functionCall": false
+                },
+                {
+                    "modelName": "text-embedding-ada-002",
+                    "maxTokens": 8191,
+                    "modelType": "embedding",
+                    "functionCall": false
+                },
+                {
+                    "modelName": "text-embedding-3-small",
+                    "maxTokens": 8191,
+                    "modelType": "embedding",
+                    "functionCall": false
+                },
+                {
+                    "modelName": "text-embedding-3-large",
+                    "maxTokens": 8191,
+                    "modelType": "embedding",
+                    "functionCall": false
+                },
+                {
+                    "modelName": "gpt-4",
+                    "tags": "LLM,CHAT,8K",
+                    "maxTokens": 8191,
+                    "modelType": "llm",
+                    "functionCall": false
+                },
+                {
+                    "modelName": "gpt-4-turbo",
+                    "tags": "LLM,CHAT,8K",
+                    "maxTokens": 8191,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "gpt-4-32k",
+                    "tags": "LLM,CHAT,32K",
+                    "maxTokens": 32768,
+                    "modelType": "llm",
+                    "functionCall": false
+                }
+            ]
+        },
+        {
+            "name": "通义千问",
+            "type": "dashscope",
+            "models": [
+                {
+                    "modelName": "deepseek-r1",
+                    "maxTokens": 65792,
+                    "modelType": "llm",
+                    "functionCall": false
+                },
+                {
+                    "modelName": "deepseek-v3",
+                    "maxTokens": 65792,
+                    "modelType": "llm",
+                    "functionCall": false
+                },
+                {
+                    "modelName": "deepseek-r1-distill-qwen-1.5b",
+                    "maxTokens": 32768,
+                    "modelType": "llm",
+                    "functionCall": false
+                },
+                {
+                    "modelName": "deepseek-r1-distill-qwen-7b",
+                    "maxTokens": 32768,
+                    "modelType": "llm",
+                    "functionCall": false
+                },
+                {
+                    "modelName": "deepseek-r1-distill-qwen-14b",
+                    "maxTokens": 32768,
+                    "modelType": "llm",
+                    "functionCall": false
+                },
+                {
+                    "modelName": "deepseek-r1-distill-qwen-32b",
+                    "maxTokens": 32768,
+                    "modelType": "llm",
+                    "functionCall": false
+                },
+                {
+                    "modelName": "deepseek-r1-distill-llama-8b",
+                    "maxTokens": 32768,
+                    "modelType": "llm",
+                    "functionCall": false
+                },
+                {
+                    "modelName": "deepseek-r1-distill-llama-70b",
+                    "maxTokens": 32768,
+                    "modelType": "llm",
+                    "functionCall": false
+                },
+                {
+                    "modelName": "qwq-32b",
+                    "maxTokens": 131072,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwq-plus",
+                    "maxTokens": 131072,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwq-plus-latest",
+                    "maxTokens": 131072,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen3-coder-480b-a35b-instruct",
+                    "maxTokens": 256000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen3-30b-a3b-instruct-2507",
+                    "maxTokens": 128000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen3-30b-a3b-thinking-2507",
+                    "maxTokens": 128000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen3-30b-a3b",
+                    "maxTokens": 128000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen3-235b-a22b-instruct-2507",
+                    "maxTokens": 128000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen3-235b-a22b-thinking-2507",
+                    "maxTokens": 128000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen3-235b-a22b",
+                    "maxTokens": 128000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen3-0.6b",
+                    "maxTokens": 32000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen3-1.7b",
+                    "maxTokens": 32000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen3-4b",
+                    "maxTokens": 128000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen3-8b",
+                    "maxTokens": 128000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen3-14b",
+                    "maxTokens": 128000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen3-32b",
+                    "maxTokens": 128000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen-long",
+                    "maxTokens": 1000000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen-turbo",
+                    "maxTokens": 1000000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen-turbo-latest",
+                    "maxTokens": 1000000,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen-max",
+                    "maxTokens": 32768,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen-plus",
+                    "maxTokens": 131072,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "qwen-plus-latest",
+                    "maxTokens": 131072,
+                    "modelType": "llm",
+                    "functionCall": true
+                },
+                {
+                    "modelName": "text-embedding-v2",
+                    "maxTokens": 2048,
+                    "modelType": "embedding"
+                },
+                {
+                    "modelName": "text-embedding-v3",
+                    "maxTokens": 8192,
+                    "modelType": "embedding"
+                },
+                {
+                    "modelName": "text-embedding-v4",
+                    "maxTokens": 8192,
+                    "modelType": "embedding"
+                },
+                {
+                    "modelName": "gte-rerank",
+                    "maxTokens": 4000,
+                    "modelType": "rerank"
+                }
+            ]
+        },
+        {
+            "name": "Ollama",
+            "type": "ollama",
+            "models": []
+        },
+        {
+            "name": "OpenAI-API-Compatible",
+            "type": "openai_api",
+            "models": []
+        }
+    ]
+}

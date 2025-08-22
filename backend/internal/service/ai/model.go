@@ -35,7 +35,7 @@ func UpdateProviderModel(ctx context.Context, req model.UpdateProviderModelReq) 
 	return nil
 }
 
-func ListProviderModels(ctx context.Context, query model.ProviderModelQuery) ([]*model.ProviderModel, int64, error) {
+func ListProviderModels(ctx context.Context, query model.ProviderModelQuery) ([]*model.ProviderModelListVo, int64, error) {
 	result, total, err := model.ListProviderModel(ctx, query)
 	if err != nil {
 		return nil, 0, global.NewError(500, "查询模型列表失败", err)

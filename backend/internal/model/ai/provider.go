@@ -2,20 +2,40 @@ package ai
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flowing/internal/model/ai/provider"
 	"flowing/internal/model/common"
 	"flowing/internal/repository"
 	"flowing/internal/repository/db"
+	"io"
+	"os"
+	"path"
 )
 
 type ProviderType string
 
+var DefaultProviderTemplate = map[string]ProviderTemplate{}
+
 const (
-	ProviderTypeOpenAI    ProviderType = "openai"    // OpenAI
-	ProviderTypeOllama    ProviderType = "ollama"    // Ollama
-	ProviderTypeDashscope ProviderType = "dashscope" // 通义
+	ProviderTypeOpenAI    ProviderType = "openai"     // OpenAI
+	ProviderTypeOllama    ProviderType = "ollama"     // Ollama
+	ProviderTypeDashscope ProviderType = "dashscope"  // 通义
+	ProviderTypeOpenAIAPI ProviderType = "openai_api" // OpenAI API Compatible
 )
+
+type ProviderTemplate struct {
+	Name   string                  `json:"name"`
+	Type   ProviderType            `json:"type"`
+	Models []ProviderModelTemplate `json:"models"`
+}
+
+type ProviderModelTemplate struct {
+	Name         string `json:"modelName"`
+	MaxTokens    int    `json:"maxTokens"`
+	ModelType    string `json:"modelType"`
+	FunctionCall bool   `json:"functionCall"`
+}
 
 // Provider 模型提供方
 type Provider struct {
@@ -42,8 +62,27 @@ type CreateProviderReq struct {
 	ProviderConfig string `json:"providerConfig" binding:"required"`
 }
 
-func CreateProvider(ctx context.Context, model Provider) error {
-	return repository.DB(ctx).Create(&model).Error
+func init() {
+	templateFile, err := os.Open(path.Join("config", "model", "provider.json"))
+	if err != nil {
+		panic(err)
+	}
+	defer templateFile.Close()
+	data, err := io.ReadAll(templateFile)
+	if err != nil {
+		panic(err)
+	}
+	var template map[string][]ProviderTemplate
+	if err := json.Unmarshal(data, &template); err != nil {
+		panic(err)
+	}
+	for _, p := range template["providers"] {
+		DefaultProviderTemplate[string(p.Type)] = p
+	}
+}
+
+func CreateProvider(ctx context.Context, model *Provider) error {
+	return repository.DB(ctx).Create(model).Error
 }
 
 func ListProviders(ctx context.Context, query ProviderQuery) ([]*Provider, int64, error) {

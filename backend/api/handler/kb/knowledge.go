@@ -54,3 +54,15 @@ func DeleteKnowledgeBase(c *gin.Context) {
 	}
 	c.JSON(200, common.Ok())
 }
+
+func Search(c *gin.Context) {
+	var req model.KnowledgeQueryReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		panic(global.ErrBadRequest(err))
+	}
+	chunks, err := service.Search(c, req)
+	if err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.OkWithData(chunks))
+}
