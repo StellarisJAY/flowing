@@ -6,29 +6,33 @@
       </div>
       <div class="kb-retrieve-form">
         <div class="form-item-text">
-          <textarea class="form-item-textarea" placeholder="请输入检索文本"/>
+          <textarea class="form-item-textarea" placeholder="请输入检索文本" v-model="formState.queryText" />
         </div>
         <div class="form-item-settings">
           <div class="form-item">
             <div>检索类型</div>
-            <Select :options="retrieveTypeOptions" v-model:value="formState.retrieveType" />
+            <Select :options="retrieveTypeOptions" v-model:value="formState.searchType" />
           </div>
-          <div class="form-item" v-if="formState.retrieveType === 'hybrid'">
+          <div class="form-item">
+            <div>TopK</div>
+            <InputNumber v-model:value="formState.topK" :min="1" :max="100" :step="1" />
+          </div>
+          <div class="form-item" v-if="formState.searchType === 'hybrid'">
             <div>混合检索排序</div>
-            <RadioGroup :options="hybridRerankOptions" v-model:value="formState.hybridRerank" />
+            <RadioGroup :options="hybridRerankOptions" v-model:value="formState.hybridType" />
           </div>
-          <div class="form-item" v-if="formState.retrieveType !== 'fulltext'">
+          <div class="form-item" v-if="formState.searchType !== 'fulltext'">
             <div>相似度阈值 (≥{{formState.threshold}})</div>
             <Slider v-model:value="formState.threshold" :min="0.01" :max="0.99" :step="0.01" />
           </div>
 
-          <div class="form-item" v-if="formState.retrieveType === 'hybrid' && formState.hybridRerank === 'weight'">
+          <div class="form-item" v-if="formState.searchType === 'hybrid' && formState.hybridType === 'weight'">
             <div>
-              权重 (向量：{{formState.vectorWeight}}, 全文: {{Math.round((1-formState.vectorWeight) * 10)/10}})
+              权重 (全文: {{Math.round((1-formState.weight) * 10)/10}} 向量：{{formState.weight}})
             </div>
-            <Slider v-model:value="formState.vectorWeight" :min="0" :max="1" :step="0.1" />
+            <Slider v-model:value="formState.weight" :min="0" :max="1" :step="0.1" />
           </div>
-          <div class="form-item" v-if="formState.retrieveType === 'hybrid' && formState.hybridRerank === 'rerank'">
+          <div class="form-item" v-if="formState.searchType === 'hybrid' && formState.hybridType === 'rerank'">
             <div>
               重排序模型
             </div>
@@ -36,18 +40,18 @@
           </div>
         </div>
         <div class="form-item form-item-search-btn">
-          <IconButton icon="SearchOutlined" title="搜索" type="primary"/>
+          <IconButton icon="SearchOutlined" title="搜索" type="primary" @click="search" />
         </div>
       </div>
     </div>
     <div class="kb-retrieve-result">
-      <div class="kb-retrieve-items">
-        <div v-for="item in retrieveResultMock" :key="item.srcDocId" class="kb-retrieve-item">
+      <div class="kb-retrieve-items" v-if="searchResult && searchResult.length > 0">
+        <div v-for="item in searchResult" :key="item.sliceId" class="kb-retrieve-item">
           <RetrieveContent :item="item" />
         </div>
       </div>
-      <div class="kb-retrieve-pagination">
-        <Pagination />
+      <div class="kb-retrieve-empty" v-else>
+        <Empty />
       </div>
     </div>
   </div>
@@ -55,10 +59,18 @@
 
 <script lang="js" setup>
 import IconButton from '@/components/Button/IconButton.vue';
-import { Select, Slider, RadioGroup, Pagination } from 'ant-design-vue';
+import { Select, Slider, RadioGroup, InputNumber, message, Empty } from 'ant-design-vue';
 import { ref } from 'vue';
 import ModelSelect from '@/components/AIModel/ModelSelect.vue';
 import RetrieveContent from '@/views/agent/knowledge/retrieve/RetrieveContent.vue';
+import { searchKnowledge } from '@/api/ai/knowledge.api.js';
+import { useGlobalStore } from '@/stores/global.js';
+import {useRoute} from 'vue-router';
+
+const route = useRoute();
+const knowledgeBaseId = route.query.knowledgeBaseId;
+const globalStore = useGlobalStore();
+const searchResult = ref([]);
 
 const retrieveTypeOptions = [
   {
@@ -76,10 +88,13 @@ const retrieveTypeOptions = [
 ];
 
 const formState = ref({
-  retrieveType: 'fulltext',
+  knowledgeBaseId,
+  queryText: '',
+  searchType: 'fulltext',
   threshold: 0.5,
-  hybridRerank: 'weight',
-  vectorWeight: 0.5,
+  topK: 10,
+  hybridType: 'weight',
+  weight: 0.5,
 });
 
 const hybridRerankOptions = [
@@ -93,78 +108,21 @@ const hybridRerankOptions = [
   }
 ];
 
-const retrieveResultMock = [
-  {
-    srcDocName: '文档1',
-    srcDocId: '1',
-    content: '11',
-    scores: {
-      hybrid: 0.8,
-      fulltext: 0.7,
-      vector: 0.9,
-    },
-  },
-  {
-    srcDocName: '文档1',
-    srcDocId: '1',
-    content: '这是文档1的内容',
-    scores: {
-      hybrid: 0.8,
-      fulltext: 0.7,
-      vector: 0.9,
-    },
-  },
-  {
-    srcDocName: '文档1',
-    srcDocId: '1',
-    content: '这是文档1的内容',
-    scores: {
-      hybrid: 0.8,
-      fulltext: 0.7,
-      vector: 0.9,
-    },
-  },
-  {
-    srcDocName: '文档1',
-    srcDocId: '1',
-    content: '这是文档1的内容',
-    scores: {
-      hybrid: 0.8,
-      fulltext: 0.7,
-      vector: 0.9,
-    },
-  },
-  {
-    srcDocName: '文档1',
-    srcDocId: '1',
-    content: '这是文档1的内容',
-    scores: {
-      hybrid: 0.8,
-      fulltext: 0.7,
-      vector: 0.9,
-    },
-  },
-  {
-    srcDocName: '文档1',
-    srcDocId: '1',
-    content: '这是文档1的内容',
-    scores: {
-      hybrid: 0.8,
-      fulltext: 0.7,
-      vector: 0.9,
-    },
-  },
-  {
-    srcDocName: '文档1',
-    srcDocId: '1',
-    content: '这是文档1的内容',
-    scores: {
-      hybrid: 0.8,
-      fulltext: 0.7,
-      vector: 0.9,
-    },
-  },
-]
+const search = async () => {
+  if (!formState.value.queryText) {
+    message.error('请输入检索文本');
+    return;
+  }
+  globalStore.setLoading(true);
+  try {
+    const { data } = await searchKnowledge(formState.value);
+    searchResult.value = data;
+  }catch {
+    message.error('检索失败');
+  }finally {
+    globalStore.setLoading(false);
+  }
+};
 
 </script>
 
@@ -265,35 +223,29 @@ const retrieveResultMock = [
   height: 100%;
   width: 60%;
   background-color: transparent;
-  display: flex;
+  display: flow;
   flex-direction: column;
-  gap: 10px;
-  .kb-retrieve-items {
-    width: 100%;
-    height: 90%;
-    overflow: auto;
-    display: flow;
-    .kb-retrieve-item {
-      height: 50%;
-      width: 100%;
-      margin-bottom: 10px;
-    }
-  }
-  .kb-retrieve-pagination {
-    height: 10%;
+  overflow: auto;
+  .kb-retrieve-empty {
+    height: 100%;
     width: 100%;
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
+    align-items: center;
   }
-
-  .kb-retrieve-items::-webkit-scrollbar {
+  .kb-retrieve-item {
+    height: 50%;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .kb-retrieve-result::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
-  .kb-retrieve-items::-webkit-scrollbar-track {
+  .kb-retrieve-result::-webkit-scrollbar-track {
     background-color: transparent;
   }
-  .kb-retrieve-items::-webkit-scrollbar-thumb {
+  .kb-retrieve-result::-webkit-scrollbar-thumb {
     background-color: #bfbfbf;
     border-radius: 4px;
   }

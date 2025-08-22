@@ -1,22 +1,25 @@
 <template>
-  <div>
-    <CardList
-      ref="cardListRef"
+  <div style="width: 100%; height: 100%;">
+    <Table
+      ref="tableRef"
+      :columns="columns"
       :records="records"
       :query-form-schema="queryFormSchema"
-      :search="search"
-      use-add-card
-      @add="() => openDrawer(false)"
-      @item-click="(item) => openModelDrawer(item)"
+      @refresh="search"
+      :pagination="false"
     >
-      <template #bodyCell="{ item }">
-        {{ item.providerName }}
+      <template #tool-buttons>
+        <IconButton icon="PlusOutlined" @click="() => openDrawer(false)" type="primary" title="新增模型提供方"/>
       </template>
-      <template #actions="{ item }">
-        <SettingOutlined @click.stop="() => openDrawer(true, item)" />
-        <DeleteOutlined @click.stop="() => {}" />
+      <template #bodyCell="{column, record}">
+        <img :src="getProviderIcon(record.providerType)" width="32" height="32" alt="icon" v-if="column.dataIndex === 'icon'" />
+        <Space v-if="column.dataIndex === 'actions'">
+          <Button type="link" @click="() => openDrawer(true, record)">编辑</Button>
+          <Button type="link" @click="() => openModelDrawer(record)">模型</Button>
+          <ConfirmButton title="删除" />
+        </Space>
       </template>
-    </CardList>
+    </Table>
     <FormDrawer
       :form-schema="providerFormSchema"
       :form-state="formState"
@@ -30,19 +33,22 @@
 </template>
 
 <script lang="js" setup>
-  import CardList from '@/components/CardList/CardList.vue';
+  import Table from '@/components/Table/index.vue';
   import FormDrawer from '@/components/Drawer/FormDrawer.vue';
   import { computed, ref } from 'vue';
   import {
+    columns, getProviderIcon,
     providerFormRules,
     providerFormSchema,
     queryFormSchema,
     useProviderStore,
   } from '@/views/agent/model/provider.data.js';
-  import { DeleteOutlined, SettingOutlined } from '@ant-design/icons-vue';
   import ModelDrawer from '@/views/agent/model/ModelDrawer.vue';
+  import IconButton from '@/components/Button/IconButton.vue';
+  import { Space, Button } from 'ant-design-vue';
+  import ConfirmButton from '@/components/Button/ConfirmButton.vue';
 
-  const cardListRef = ref();
+  const tableRef = ref();
   const providerStore = useProviderStore();
   const records = computed(() => providerStore.records);
   const formState = computed(() => providerStore.formState);
@@ -71,6 +77,6 @@
   };
 
   const triggerQuery = async () => {
-    await cardListRef.value.triggerQuery();
+    await tableRef.value.triggerQuery();
   };
 </script>

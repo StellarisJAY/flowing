@@ -33,6 +33,9 @@
           :body-style="itemBodyStyle"
           @click="() => emits('item-click', item)"
         >
+          <template #cover>
+            <slot name="coverCell" :item="item" />
+          </template>
           <slot name="bodyCell" :item="item" />
           <template #actions>
             <slot name="actions" :item="item" />
@@ -76,7 +79,7 @@
   const queryFormRef = ref();
 
   const itemBodyStyle = {
-    height: '80%',
+    height: '25%',
     width: '100%',
   };
   const queryForm = ref({

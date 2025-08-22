@@ -49,10 +49,9 @@
     await router.replace({
       name: item.key,
       query: {
-        documentId: query.value.documentId,
+        knowledgeBaseId: query.value.knowledgeBaseId,
       },
     });
-    activeKey.value = [item.key];
   };
 
   const handleBack = () => {

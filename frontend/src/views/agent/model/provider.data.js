@@ -1,6 +1,24 @@
 import { defineStore } from 'pinia';
 import { createProvider, listProvider, updateProvider } from '@/api/ai/provider.api.js';
 import { message } from 'ant-design-vue';
+import iconOpenai  from '@/assets/svg/openai_icon.svg';
+import iconDashscope from '@/assets/svg/dashscope_icon.svg';
+import iconOllama from '@/assets/svg/ollama_icon.svg';
+
+export const getProviderIcon = (providerType) => {
+  switch (providerType) {
+    case 'openai':
+      return iconOpenai;
+    case 'dashscope':
+      return iconDashscope;
+    case 'openai_api':
+      return iconOpenai;
+    case 'ollama':
+      return iconOllama;
+    default:
+      return iconOpenai;
+  }
+};
 
 export const providerTypeOptions = [
   {
@@ -10,6 +28,34 @@ export const providerTypeOptions = [
   {
     label: '通义千问/阿里云',
     value: 'dashscope',
+  },
+  {
+    label: 'OpenAI-API-Compatible',
+    value: 'openai_api',
+  },
+  {
+    label: 'Ollama',
+    value: 'ollama',
+  },
+];
+
+export const columns = [
+  {
+    title: '',
+    dataIndex: 'icon',
+    width: 40,
+  },
+  {
+    title: '供应商名称',
+    dataIndex: 'providerName',
+  },
+  {
+    title: '供应商类型',
+    dataIndex: 'providerType',
+  },
+  {
+    title: '操作',
+    dataIndex: 'actions',
   },
 ];
 
@@ -32,6 +78,7 @@ export const providerFormSchema = [
     name: 'providerType',
     type: 'select',
     options: () => providerTypeOptions,
+    disabled: (formState) => formState.id !== undefined,
   },
   {
     label: 'API地址',
@@ -43,7 +90,8 @@ export const providerFormSchema = [
     label: 'API密钥',
     name: 'apiKey',
     type: 'input',
-    hidden: (formState) => formState.providerType !== 'openai' && formState.providerType !== 'dashscope',
+    hidden: (formState) =>
+      formState.providerType !== 'openai' && formState.providerType !== 'dashscope',
   },
 ];
 

@@ -2,10 +2,11 @@
   <div class="retrieve-content">
     <div class="header">
       <div class="docs-scores">
-        {{`得分: ${item.scores.hybrid} 全文检索: ${item.scores.fulltext} 向量检索: ${item.scores.vector}`}}
+        {{`得分: ${formatScore(item.score)} 全文检索: ${formatScore(item.fulltextScore)} 向量检索: ${formatScore(item.vectorScore)}`}}
       </div>
-      <div class="doc-src">
-        <Button type="link">{{item.srcDocName}}</Button>
+      <div class="docs-src">
+        <div class="docs-src-title">源文档: </div>
+        <div class="docs-src-link">{{item.documentName}}</div>
       </div>
     </div>
     <div class="content">
@@ -15,23 +16,17 @@
 </template>
 
 <script lang="js" setup>
-  import {Button} from 'ant-design-vue';
 
   defineProps({
     item: {
       type: Object,
-      default: () => ({
-        srcDocName: '',
-        srcDocId: '',
-        content: '',
-        scores: {
-          hybrid: 0.0,
-          fulltext: 0.0,
-          vector: 0.0,
-        },
-      }),
+      default: () => ({}),
     },
   });
+
+  const formatScore = (score) => {
+    return score.toFixed(2);
+  }
 </script>
 
 <style scoped>
@@ -56,9 +51,24 @@
       color: #666666;
       width: 50%;
     }
-    .doc-src {
+    .docs-src {
       width: 50%;
-      text-align: right;
+      display: flex;
+      justify-content: flex-end;
+      gap: 5px;
+      .docs-src-title {
+        font-size: 14px;
+        color: #666666;
+      }
+      .docs-src-link {
+        font-size: 14px;
+        color: #1890ff;
+        text-decoration: underline;
+      }
+      .docs-src-link:hover{
+        color: #40a9ff;
+        cursor: pointer;
+      }
     }
   }
   .content {

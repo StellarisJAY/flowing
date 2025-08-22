@@ -1,5 +1,5 @@
 <template>
-  <ApiSelect v-model:value="value" :api="list" label-field="modelName" value-field="id" :multiple="false"/>
+  <ApiSelect v-model:value="value" :api="list" label-field="modelName" value-field="id" :multiple="false" />
 </template>
 <script setup lang="ts">
 import { listModel } from '@/api/ai/model.api.js';

@@ -6,7 +6,12 @@
     :placeholder="placeholder"
     :multiple="multiple"
     :disabled="disabled"
-  />
+  >
+    <!-- 透传所有slots -->
+    <template v-for="(_, slotName) in $slots" #[slotName]="slotData">
+      <slot :name="slotName" v-bind="slotData" />
+    </template>
+  </Select>
 </template>
 
 <script lang="js" setup>

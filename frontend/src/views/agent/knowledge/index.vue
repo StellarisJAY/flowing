@@ -9,6 +9,12 @@
     @add="() => openModal(false)"
     @item-click="(item) => toDocument(item.id)"
   >
+    <template #coverCell="{ item }">
+      <img
+        alt="example"
+        src="https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png"
+      />
+    </template>
     <template #bodyCell="{ item }">
       {{ item.name }}
     </template>
