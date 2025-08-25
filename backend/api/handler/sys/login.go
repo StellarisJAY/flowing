@@ -5,6 +5,7 @@ import (
 	"flowing/global"
 	model "flowing/internal/model/system"
 	service "flowing/internal/service/system"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,11 +14,11 @@ func Login(c *gin.Context) {
 	if err := c.ShouldBindJSON(&login); err != nil {
 		panic(global.ErrBadRequest(err))
 	}
-	token, err := service.Login(c, login)
+	resp, err := service.Login(c, login)
 	if err != nil {
 		panic(err)
 	}
-	c.JSON(200, common.OkWithData(token))
+	c.JSON(200, common.OkWithData(resp))
 }
 
 func Logout(c *gin.Context) {

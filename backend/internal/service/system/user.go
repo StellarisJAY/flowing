@@ -25,6 +25,9 @@ func CreateUser(ctx context.Context, user sysmodel.CreateUserReq) error {
 	enc := sha256.New()
 	password := hex.EncodeToString(enc.Sum([]byte(user.Password)))
 	userModel := sysmodel.User{
+		BaseModel: common.BaseModel{
+			CreateBy: ctx.Value(global.ContextKeyUser).(sysmodel.User).Id,
+		},
 		Username: user.Username,
 		NickName: user.NickName,
 		Password: password,
@@ -104,20 +107,21 @@ func GenCaptcha(_ context.Context) (string, string, error) {
 	return id, img, nil
 }
 
-func Login(ctx context.Context, req sysmodel.LoginReq) (string, error) {
+func Login(ctx context.Context, req sysmodel.LoginReq) (sysmodel.LoginResp, error) {
+	resp := sysmodel.LoginResp{}
 	if !util.VerifyCaptcha(req.CaptchaKey, req.Captcha) {
-		return "", global.NewError(400, "验证码错误", nil)
+		return resp, global.NewError(400, "验证码错误", nil)
 	}
 	enc := sha256.New()
 	password := hex.EncodeToString(enc.Sum([]byte(req.Password)))
 	if ok, _ := sysmodel.CheckLogin(ctx, req.Username, password); !ok {
 		slog.Info("用户登录失败", "username", req.Username)
-		return "", global.NewError(400, "用户名或密码错误", nil)
+		return resp, global.NewError(400, "用户名或密码错误", nil)
 	}
 	// 获取用户信息
 	user, err := sysmodel.GetUser(ctx, req.Username)
 	if err != nil {
-		return "", global.NewError(500, "登录失败", err)
+		return resp, global.NewError(500, "登录失败", err)
 	}
 
 	claims := jwt.RegisteredClaims{
@@ -131,14 +135,16 @@ func Login(ctx context.Context, req sysmodel.LoginReq) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(repository.Config().Jwt.Secret))
 	if err != nil {
-		return "", global.NewError(500, "登录失败", err)
+		return resp, global.NewError(500, "登录失败", err)
 	}
 	// 缓存用户信息
 	userInfo, _ := json.Marshal(user)
 	if err := repository.Redis().SetEx(ctx, claims.ID, string(userInfo), time.Hour*24).Err(); err != nil {
-		return "", global.NewError(500, "登录失败", err)
+		return resp, global.NewError(500, "登录失败", err)
 	}
-	return tokenString, nil
+	resp.Token = tokenString
+	resp.User = *user
+	return resp, nil
 }
 
 func GetUserMenus(ctx context.Context, userId int64) ([]*sysmodel.Menu, error) {

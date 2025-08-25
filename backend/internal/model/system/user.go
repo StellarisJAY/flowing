@@ -55,6 +55,11 @@ type LoginReq struct {
 	CaptchaKey string `json:"captchaKey" binding:"required"`
 }
 
+type LoginResp struct {
+	Token string `json:"token"`
+	User  User   `json:"user"`
+}
+
 func CreateUser(ctx context.Context, user *User) error {
 	return repository.DB(ctx).Create(user).Error
 }

@@ -16,6 +16,9 @@ func CreateMenu(ctx context.Context, menu sysmodel.CreateMenuReq) error {
 		}
 	}
 	model := &sysmodel.Menu{
+		BaseModel: common.BaseModel{
+			CreateBy: ctx.Value(global.ContextKeyUser).(sysmodel.User).Id,
+		},
 		MenuName:   menu.MenuName,
 		Type:       menu.Type,
 		Path:       menu.Path,

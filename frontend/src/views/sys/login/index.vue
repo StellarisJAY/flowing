@@ -84,7 +84,8 @@
         return login(loginForm);
       })
       .then((res) => {
-        store.setToken(res.data);
+        store.setToken(res.data.token);
+        store.setUserInfo(res.data.user);
         message.success("登录成功").then();
         router.push("/system");
       })

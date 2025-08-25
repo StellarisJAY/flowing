@@ -56,7 +56,7 @@
 
   const router = useRouter();
   const handleBack = () => router.back();
-  const mode = ref('1');
+  const mode = ref('');
 
   const setMode = (value) => {
     mode.value = value;

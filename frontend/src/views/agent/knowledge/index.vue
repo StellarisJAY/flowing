@@ -19,11 +19,12 @@
       {{ item.name }}
     </template>
     <template #actions="{ item }">
-      <SettingOutlined @click.stop="() => openModal(true, item)" />
+      <SettingOutlined @click.stop="() => openModal(true, item)" v-if="item.createBy === userStore.getUserId()" />
       <Popconfirm
         title="确认删除？删除知识库将删除所有文档(不可恢复)"
         @confirm="() => deleteKnowledge(item.id)"
         @click.stop=""
+        v-if="item.createBy === userStore.getUserId()"
       >
         <DeleteOutlined />
       </Popconfirm>
@@ -54,6 +55,7 @@
   import { useRouter } from 'vue-router';
   import { Popconfirm } from 'ant-design-vue';
   import { useGlobalStore } from '@/stores/global.js';
+  import { useUserStore } from '@/stores/user.js';
 
   const cardListRef = ref();
   const knowledgeStore = useKnowledgeStore();
@@ -62,6 +64,7 @@
   const records = computed(() => knowledgeStore.records);
   const router = useRouter();
   const globalStore = useGlobalStore();
+  const userStore = useUserStore();
 
   const openModal = (isUpdate, record) => {
     if (isUpdate) {

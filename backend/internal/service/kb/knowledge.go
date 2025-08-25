@@ -9,6 +9,7 @@ import (
 	"flowing/internal/model/common"
 	"flowing/internal/model/kb"
 	"flowing/internal/model/monitor"
+	"flowing/internal/model/system"
 	"flowing/internal/repository"
 	"flowing/internal/repository/vector"
 	"fmt"
@@ -41,11 +42,15 @@ func CreateKnowledgeBase(ctx context.Context, req kb.CreateKnowledgeBaseReq) err
 		return global.NewError(500, "创建知识库失败，模型类型错误", nil)
 	}
 	model := kb.KnowledgeBase{
+		BaseModel: common.BaseModel{
+			CreateBy: ctx.Value(global.ContextKeyUser).(system.User).Id,
+		},
 		Name:           req.Name,
 		Description:    req.Description,
 		DatasourceId:   req.DatasourceId,
 		EmbeddingModel: req.EmbeddingModel,
 		Enable:         req.Enable,
+		Public:         req.Public,
 	}
 
 	return repository.Tx(ctx, func(c context.Context) error {
@@ -79,6 +84,7 @@ func UpdateKnowledgeBase(ctx context.Context, req kb.UpdateKnowledgeBaseReq) err
 		Name:        req.Name,
 		Description: req.Description,
 		Enable:      req.Enable,
+		Public:      req.Public,
 	})
 	if err != nil {
 		return global.NewError(500, "更新知识库失败", err)

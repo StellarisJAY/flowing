@@ -7,12 +7,17 @@ import (
 	"flowing/global"
 	"flowing/internal/model/ai"
 	"flowing/internal/model/ai/provider"
+	"flowing/internal/model/common"
+	"flowing/internal/model/system"
 	"flowing/internal/repository"
 	"strings"
 )
 
 func CreateProvider(ctx context.Context, req ai.CreateProviderReq) error {
 	p := ai.Provider{
+		BaseModel: common.BaseModel{
+			CreateBy: ctx.Value(global.ContextKeyUser).(system.User).Id,
+		},
 		ProviderName:   req.ProviderName,
 		ProviderType:   req.ProviderType,
 		ProviderConfig: req.ProviderConfig,

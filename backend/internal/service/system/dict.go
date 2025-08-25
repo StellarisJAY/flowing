@@ -9,7 +9,11 @@ import (
 )
 
 func CreateDict(ctx context.Context, req system.CreateDictReq) error {
+	loginUser := ctx.Value(global.ContextKeyUser).(system.User)
 	dict := system.Dict{
+		BaseModel: common.BaseModel{
+			CreateBy: loginUser.Id,
+		},
 		Name:        req.Name,
 		Code:        req.Code,
 		Description: req.Description,
@@ -21,7 +25,11 @@ func CreateDict(ctx context.Context, req system.CreateDictReq) error {
 }
 
 func CreateDictItem(ctx context.Context, req system.CreateDictItemReq) error {
+	loginUser := ctx.Value(global.ContextKeyUser).(system.User)
 	dictItem := system.DictItem{
+		BaseModel: common.BaseModel{
+			CreateBy: loginUser.Id,
+		},
 		DictId:      req.DictId,
 		ItemKey:     req.ItemKey,
 		ItemValue:   req.ItemValue,

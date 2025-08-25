@@ -1,10 +1,12 @@
 package middleware
 
 import (
+	"context"
 	"encoding/json"
 	"flowing/global"
 	"flowing/internal/model/system"
 	"flowing/internal/repository"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -32,6 +34,7 @@ func Auth() gin.HandlerFunc {
 			panic(global.ErrUnauthorized)
 		}
 		c.Set("user", userInfo)
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), global.ContextKeyUser, userInfo))
 		c.Next()
 	}
 }

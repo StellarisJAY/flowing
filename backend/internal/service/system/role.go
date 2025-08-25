@@ -11,6 +11,9 @@ import (
 
 func CreateRole(ctx context.Context, role sysmodel.CreateRoleReq) error {
 	model := sysmodel.Role{
+		BaseModel: common.BaseModel{
+			CreateBy: ctx.Value(global.ContextKeyUser).(sysmodel.User).Id,
+		},
 		RoleName:    role.RoleName,
 		RoleKey:     role.RoleKey,
 		Description: role.Description,

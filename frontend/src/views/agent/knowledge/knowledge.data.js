@@ -46,6 +46,12 @@ export const knowledgeFormSchema = [
     placeholder: '请选择是否启用',
     defaultValue: false,
   },
+  {
+    name: 'public',
+    label: '是否公开(公开后，所有用户都可以访问)',
+    type: 'switch',
+    defaultValue: false,
+  }
 ];
 
 export const knowledgeFormRules = {
@@ -58,6 +64,7 @@ export const knowledgeFormRules = {
   datasource: [
     { required: true, message: '请选择数据源(请先在数据源管理中配置向量库)', trigger: 'submit' },
   ],
+  public: [{ required: true, message: '请选择是否公开', trigger: 'submit' }],
 };
 
 export const searchFormSchema = [
@@ -68,6 +75,12 @@ export const searchFormSchema = [
     placeholder: '请输入知识库名称',
     defaultValue: '',
   },
+  {
+    name: 'private',
+    label: '我创建的',
+    type: 'checkbox',
+    defaultValue: false,
+  }
 ];
 
 export const deleteKb = async (id) => {

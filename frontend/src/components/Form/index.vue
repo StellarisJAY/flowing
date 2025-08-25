@@ -46,6 +46,11 @@
             v-model:checked="formState[item.name]"
             :disabled="item.disabled && item.disabled(formState)"
           />
+          <Checkbox
+            v-if="item.type === 'checkbox'"
+            v-model:checked="formState[item.name]"
+            :disabled="item.disabled && item.disabled(formState)"
+          />
           <ApiSelect
             v-if="item.type === 'apiSelect'"
             v-model:value="formState[item.name]"
@@ -110,6 +115,7 @@
     Select,
     TreeSelect,
     Switch,
+    Checkbox,
   } from 'ant-design-vue';
   import { ref, watch } from 'vue';
   import ApiTreeSelect from '@/components/Select/ApiTreeSelect.vue';

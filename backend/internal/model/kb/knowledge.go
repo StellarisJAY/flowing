@@ -2,7 +2,9 @@ package kb
 
 import (
 	"context"
+	"flowing/global"
 	"flowing/internal/model/common"
+	"flowing/internal/model/system"
 	"flowing/internal/repository"
 	"flowing/internal/repository/db"
 )
@@ -13,7 +15,8 @@ type KnowledgeBase struct {
 	Description    string `json:"description" gorm:"type:varchar(255);not null"`     // 介绍
 	DatasourceId   int64  `json:"datasourceId,string" gorm:"type:bigint;not null"`   // 数据源ID
 	EmbeddingModel int64  `json:"embeddingModel,string" gorm:"type:bigint;not null"` // 嵌入模型ID
-	Enable         *bool  `json:"enable" gorm:"type:tinyint(1);not null;default:0"`
+	Enable         *bool  `json:"enable" gorm:"type:boolean;not null;default:0"`     // 是否启用
+	Public         *bool  `json:"public" gorm:"type:boolean;not null;default:0"`     // 是否公开
 
 	DatasourceName     string `json:"datasourceName" gorm:"-"`
 	DatasourceType     string `json:"datasourceType" gorm:"-"`
@@ -30,6 +33,7 @@ type CreateKnowledgeBaseReq struct {
 	DatasourceId   int64  `json:"datasourceId,string" binding:"required"`
 	EmbeddingModel int64  `json:"embeddingModel,string" binding:"required"`
 	Enable         *bool  `json:"enable" binding:"required"`
+	Public         *bool  `json:"public" binding:"required"`
 }
 
 type UpdateKnowledgeBaseReq struct {
@@ -37,11 +41,13 @@ type UpdateKnowledgeBaseReq struct {
 	Name        string `json:"name" binding:"required"`
 	Description string `json:"description" binding:"required"`
 	Enable      *bool  `json:"enable" binding:"required"`
+	Public      *bool  `json:"public" binding:"required"`
 }
 
 type KnowledgeBaseQuery struct {
 	common.BaseQuery
-	Name string `json:"name" form:"name"`
+	Name    string `json:"name" form:"name"`
+	Private bool   `json:"private" form:"private"`
 }
 
 type KnowledgeQueryReq struct {
@@ -86,12 +92,18 @@ func GetKnowledgeBase(ctx context.Context, id int64) (*KnowledgeBase, error) {
 }
 
 func ListKnowledgeBase(ctx context.Context, query KnowledgeBaseQuery) ([]*KnowledgeBase, int64, error) {
+	loginUser := ctx.Value(global.ContextKeyUser).(system.User)
 	var list []*KnowledgeBase
 	var total int64
 	d := repository.DB(ctx).Model(&KnowledgeBase{}).
 		InnerJoins("JOIN monitor_datasource md ON md.id = datasource_id").
 		InnerJoins("JOIN ai_provider_model apm ON apm.id = embedding_model").
 		Select("ai_knowledge_base.*, md.name as datasource_name, apm.model_name as embedding_model_name")
+	if query.Private {
+		d = d.Where("ai_knowledge_base.create_by = ?", loginUser.Id)
+	} else {
+		d = d.Where("ai_knowledge_base.public = ? OR ai_knowledge_base.create_by = ?", true, loginUser.Id)
+	}
 	if query.Name != "" {
 		d = d.Where("ai_knowledge_base.name LIKE ?", "%"+query.Name+"%")
 	}

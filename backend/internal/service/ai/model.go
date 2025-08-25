@@ -5,12 +5,15 @@ import (
 	"flowing/global"
 	model "flowing/internal/model/ai"
 	"flowing/internal/model/common"
+	"flowing/internal/model/system"
 	"flowing/internal/repository"
 )
 
 func CreateProviderModel(ctx context.Context, req model.CreateProviderModelReq) error {
 	pm := model.ProviderModel{
-		BaseModel:  common.BaseModel{},
+		BaseModel: common.BaseModel{
+			CreateBy: ctx.Value(global.ContextKeyUser).(system.User).Id,
+		},
 		ProviderId: req.ProviderId,
 		ModelName:  req.ModelName,
 		ModelType:  req.ModelType,

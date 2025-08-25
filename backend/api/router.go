@@ -1,6 +1,7 @@
 package api
 
 import (
+	"flowing/api/handler/agent"
 	"flowing/api/handler/ai"
 	"flowing/api/handler/kb"
 	"flowing/api/handler/monitor"
@@ -13,6 +14,7 @@ import (
 )
 
 func InitRouter(e *gin.Engine) {
+	e.ContextWithFallback = true
 	e.Use(middleware.CORS()) // 跨域中间件
 	g := e.Group("/api")
 	g.Use(gin.CustomRecoveryWithWriter(io.Discard, middleware.Recovery())) // 自定义恢复中间件
@@ -112,5 +114,11 @@ func InitRouter(e *gin.Engine) {
 		d.POST("/parse", kb.ParseDocument)        // 解析文档
 		d.POST("/cancel", kb.CancelParseDocument) // 取消解析文档
 		d.GET("/chunks", kb.ListChunks)           // 获取文档列表
+	}
+	{
+		a := g.Group("/agent")
+		a.Use(middleware.Auth())
+		a.POST("/create", agent.CreateAgent) // 创建智能体
+		a.GET("/list", agent.ListAgent)      // 获取智能体列表
 	}
 }

@@ -13,6 +13,27 @@ export const useUserStore = defineStore('login_user', {
     getToken() {
       return localStorage.getItem('flowing_access_token');
     },
+    setUserInfo(userInfo) {
+      this.userInfo = userInfo;
+      localStorage.setItem('flowing_user_info', JSON.stringify(userInfo));
+    },
+    getUserInfo() {
+      if (this.userInfo.id) {
+        return this.userInfo;
+      }
+      const userInfo = JSON.parse(localStorage.getItem('flowing_user_info'));
+      if (userInfo) {
+        return userInfo;
+      }
+      return null;
+    },
+    getUserId() {
+      const user = this.getUserInfo();
+      if (user) {
+        return user.id;
+      }
+      return null;
+    },
     changeTabPanesOnRouting(to) {
       if (to.meta.hideTab) {
         return;
@@ -39,6 +60,11 @@ export const useUserStore = defineStore('login_user', {
           this.activeTab = tabPanes[0].key;
         }
       }
+    },
+    logout() {
+      this.userInfo = {};
+      this.activeTab = '';
+      localStorage.clear();
     },
   },
 });

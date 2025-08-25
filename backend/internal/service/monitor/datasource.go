@@ -5,6 +5,7 @@ import (
 	"flowing/global"
 	"flowing/internal/model/common"
 	"flowing/internal/model/monitor"
+	"flowing/internal/model/system"
 	"flowing/internal/repository"
 	"fmt"
 	"time"
@@ -12,6 +13,9 @@ import (
 
 func CreateDatasource(ctx context.Context, req monitor.CreateDatasourceReq) error {
 	ds := monitor.Datasource{
+		BaseModel: common.BaseModel{
+			CreateBy: ctx.Value(global.ContextKeyUser).(system.User).Id,
+		},
 		Name:        req.Name,
 		Type:        req.Type,
 		Username:    req.Username,

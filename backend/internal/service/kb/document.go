@@ -3,8 +3,10 @@ package kb
 import (
 	"context"
 	"flowing/global"
+	"flowing/internal/model/common"
 	"flowing/internal/model/kb"
 	"flowing/internal/model/monitor"
+	"flowing/internal/model/system"
 	"flowing/internal/repository"
 	"flowing/internal/repository/vector"
 	"strings"
@@ -41,6 +43,9 @@ func UploadDocument(ctx context.Context, req kb.UploadDocumentReq) error {
 		return global.NewError(500, "文件名称格式错误，必须包含文件扩展名", nil)
 	}
 	doc := &kb.Document{
+		BaseModel: common.BaseModel{
+			CreateBy: ctx.Value(global.ContextKeyUser).(system.User).Id,
+		},
 		OriginalName:    req.FileName,
 		KnowledgeBaseId: req.KnowledgeBaseId,
 		Size:            req.Size,

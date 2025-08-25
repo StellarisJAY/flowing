@@ -2,6 +2,7 @@ package migration
 
 import (
 	"context"
+	"flowing/internal/model/agent"
 	"flowing/internal/model/ai"
 	"flowing/internal/model/kb"
 	"flowing/internal/model/monitor"
@@ -24,7 +25,9 @@ func MigrateDB() {
 		&monitor.Datasource{},
 		&kb.KnowledgeBase{},
 		&kb.Document{},
-		&kb.Task{})
+		&kb.Task{},
+		&agent.Agent{},
+	)
 	if err != nil {
 		panic(err)
 	}

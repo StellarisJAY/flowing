@@ -9,7 +9,16 @@
         :selectable="false"
         @click="onMenuItemClick"
       />
-      <div class="flowing-header-avatar"></div>
+      <div class="flowing-header-avatar">
+        <Dropdown>
+          <Avatar />
+          <template #overlay>
+            <Menu>
+              <MenuItem @click="logout">退出登录</MenuItem>
+            </Menu>
+          </template>
+        </Dropdown>
+      </div>
     </Layout.Header>
 
     <Tabs
@@ -47,7 +56,7 @@
 </template>
 
 <script lang="js" setup>
-  import { Layout, Menu, Tabs, FloatButton } from 'ant-design-vue';
+  import { Layout, Menu, Tabs, FloatButton, Dropdown, MenuItem, Avatar } from 'ant-design-vue';
   import { computed, ref } from 'vue';
   import { useRouter } from 'vue-router';
   import { usePermissionStore } from '@/stores/permission.js';
@@ -86,6 +95,11 @@
   const showChatButton = computed(()=>{
     return route.name !== '聊天页面';
   });
+
+  const logout = () => {
+    userStore.logout();
+    router.replace('/sys/login');
+  };
 </script>
 
 <style scoped>
@@ -113,6 +127,11 @@
   .flowing-header-avatar {
     width: 25%;
     height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 20px;
   }
 
   .flowing-header-menu {
