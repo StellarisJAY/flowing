@@ -10,6 +10,8 @@ require (
 	github.com/cloudwego/eino-ext/components/document/transformer/splitter/recursive v0.0.0-20250820120452-cb4c949a1d4c
 	github.com/cloudwego/eino-ext/components/embedding/dashscope v0.0.0-20250820120452-cb4c949a1d4c
 	github.com/cloudwego/eino-ext/components/embedding/openai v0.0.0-20250820120452-cb4c949a1d4c
+	github.com/cloudwego/eino-ext/components/model/openai v0.0.0-20250826113018-8c6f6358d4bb
+	github.com/cloudwego/eino-ext/components/model/qwen v0.0.0-20250826113018-8c6f6358d4bb
 	github.com/gin-gonic/gin v1.10.1
 	github.com/golang-jwt/jwt/v5 v5.2.3
 	github.com/google/uuid v1.6.0
@@ -35,7 +37,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cilium/ebpf v0.11.0 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
-	github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250331101427-906b8d194a99 // indirect
+	github.com/cloudwego/eino-ext/libs/acl/openai v0.0.0-20250821122458-ae35393076b3 // indirect
 	github.com/cockroachdb/errors v1.9.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20211118104740-dabe8e521a4f // indirect
 	github.com/cockroachdb/redact v1.1.3 // indirect
@@ -48,6 +50,7 @@ require (
 	github.com/dslipak/pdf v0.0.2 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.8.4 // indirect
+	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
 	github.com/getkin/kin-openapi v0.118.0 // indirect
@@ -94,6 +97,7 @@ require (
 	github.com/mailru/easyjson v0.9.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
+	github.com/meguminnnnnnnnn/go-openai v0.0.0-20250821095446-07791bea23a0 // indirect
 	github.com/milvus-io/milvus-proto/go-api/v2 v2.6.0 // indirect
 	github.com/milvus-io/milvus/pkg/v2 v2.6.0 // indirect
 	github.com/minio/crc64nvme v1.0.2 // indirect
@@ -116,7 +120,6 @@ require (
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/samber/lo v1.27.0 // indirect
-	github.com/sashabaranov/go-openai v1.38.1 // indirect
 	github.com/shirou/gopsutil/v3 v3.23.7 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect

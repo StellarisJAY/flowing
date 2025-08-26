@@ -55,7 +55,7 @@ export const fetchEventStream = async (url, data, onOpen, onMessage, onError, on
     body: JSON.stringify(data), // 请求数据JSON
   };
   try {
-    const res = await fetch(url, options);
+    const res = await fetch(import.meta.env.VITE_API_URL + url, options);
     onOpen();
     const reader = res.body.getReader();
     // 读取响应流
@@ -66,7 +66,14 @@ export const fetchEventStream = async (url, data, onOpen, onMessage, onError, on
         break;
       }
       const chunk = new TextDecoder().decode(value);
-      onMessage(chunk);
+      chunk.split('\n\n').forEach((line) => {
+        const idx = line.indexOf('data:');
+        if (idx === -1) {
+          return;
+        }
+        const message = line.substring(idx + 5).trim();
+        onMessage(message);
+      });
     }
   }catch (error) {
     onError(error);

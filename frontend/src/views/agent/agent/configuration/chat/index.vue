@@ -101,7 +101,7 @@
           <div class="preview-header">
             <div class="preview-title">调试预览</div>
             <div class="preview-button">
-              <IconButton icon="PlusOutlined" title="新建对话" type="link" />
+              <IconButton icon="PlusOutlined" title="新建对话" type="link" @click="openNewConversation" />
             </div>
           </div>
         </div>
@@ -219,8 +219,12 @@
   };
 
   const sendMessage = async () => {
-    await messageHub.sendMessageDebugger(chatInput.value, JSON.stringify(configForm.value));
+    await messageHub.sendMessageDebugger(chatInput.value, 'simple', JSON.stringify(configForm.value));
     chatInput.value = '';
+  };
+
+  const openNewConversation = () => {
+    messageHub.newConversation();
   };
 </script>
 

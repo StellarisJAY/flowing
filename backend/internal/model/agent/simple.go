@@ -10,12 +10,11 @@ type SimpleAgentConfig struct {
 }
 
 type KbSearchOption struct {
-	TopK        int     `json:"topK"`
-	Threshold   float64 `json:"threshold,string"`
-	SearchType  string  `json:"searchType"`
-	HybridType  string  `json:"hybridType"`
-	Weight      float64 `json:"weight,string"`
-	RerankModel int64   `json:"rerankModel,string"`
+	TopK       int     `json:"topK"`
+	Threshold  float64 `json:"threshold"`
+	SearchType string  `json:"searchType"`
+	HybridType string  `json:"hybridType"`
+	Weight     float64 `json:"weight,string"`
 }
 
 func DefaultSimpleAgentConfig() SimpleAgentConfig {

@@ -3,5 +3,6 @@ package global
 type ContextKey string
 
 var (
-	ContextKeyUser ContextKey = "user"
+	ContextKeyUser      ContextKey = "user"
+	ContextKeySSEWriter ContextKey = "SSEWriter"
 )

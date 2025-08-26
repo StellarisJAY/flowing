@@ -107,3 +107,17 @@ func ListProviderModel(ctx context.Context, query ProviderModelQuery) ([]*Provid
 	err := d.Scopes(db.Page(query.Page, query.PageNum, query.PageSize)).Find(&models).Error
 	return models, total, err
 }
+
+func GetProviderModelDetail(ctx context.Context, id int64) (*ProviderModelDetail, error) {
+	var detail *ProviderModelDetail
+	err := repository.DB(ctx).Table("ai_provider_model apm").
+		Joins("JOIN ai_provider ap on ap.id = apm.provider_id").
+		Select("apm.*, ap.provider_name, ap.provider_type, ap.provider_config").
+		Where("apm.id = ?", id).
+		First(&detail).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	return detail, nil
+}

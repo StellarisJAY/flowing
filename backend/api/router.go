@@ -3,6 +3,7 @@ package api
 import (
 	"flowing/api/handler/agent"
 	"flowing/api/handler/ai"
+	"flowing/api/handler/chat"
 	"flowing/api/handler/kb"
 	"flowing/api/handler/monitor"
 	"flowing/api/handler/sys"
@@ -123,5 +124,10 @@ func InitRouter(e *gin.Engine) {
 		a.GET("/list", agent.ListAgent)      // 获取智能体列表
 		a.PUT("/config", agent.UpdateConfig) // 更新智能体
 		a.GET("/detail", agent.GetDetail)    // 获取智能体详情
+	}
+	{
+		c := g.Group("/chat")
+		c.Use(middleware.Auth())
+		c.POST("/send", chat.SendMessage) // 发送消息
 	}
 }
