@@ -16,7 +16,8 @@ type User struct {
 	Phone    string `json:"phone" gorm:"column:phone;type:varchar(255);not null;"`
 	Status   int    `json:"status" gorm:"column:status;type:int;default:1;"`
 
-	RoleIds []string `json:"roleIds" gorm:"-"`
+	RoleIds        []string        `json:"roleIds" gorm:"-"`
+	UserPermission *UserPermission `json:"userPermission" gorm:"-"`
 }
 
 func (User) TableName() string {
@@ -67,6 +68,12 @@ func CreateUser(ctx context.Context, user *User) error {
 func GetUser(ctx context.Context, username string) (*User, error) {
 	var user User
 	err := repository.DB(ctx).Model(&User{}).Where("username = ?", username).First(&user).Error
+	return &user, err
+}
+
+func GetUserById(ctx context.Context, id int64) (*User, error) {
+	var user User
+	err := repository.DB(ctx).Model(&User{}).Where("id = ?", id).First(&user).Error
 	return &user, err
 }
 

@@ -16,7 +16,7 @@ type Menu struct {
 	common.BaseModel
 	MenuName   string  `json:"menuName" gorm:"column:menu_name;type:varchar(50);not null;"`
 	Type       int     `json:"type" gorm:"column:type;type:int;not null;"`
-	Path       string  `json:"path" gorm:"column:path;type:varchar(255);not null;unique"`
+	Path       string  `json:"path" gorm:"column:path;type:varchar(255);not null;"`
 	Component  string  `json:"component" gorm:"column:component;type:varchar(255);not null;"`
 	ParentId   *int64  `json:"parentId,string" gorm:"column:parent_id;type:int;not null;"`
 	OrderNum   int     `json:"orderNum" gorm:"column:order_num;type:int;not null;"`
@@ -55,7 +55,7 @@ type MenuQuery struct {
 type CreateMenuReq struct {
 	MenuName   string  `json:"menuName" binding:"required"`
 	Type       int     `json:"type" binding:"required"`
-	Path       string  `json:"path" binding:"required"`
+	Path       string  `json:"path"`
 	Component  string  `json:"component"`
 	ParentId   int64   `json:"parentId,string"`
 	OrderNum   int     `json:"orderNum"`
@@ -69,7 +69,7 @@ type UpdateMenuReq struct {
 	Id         int64   `json:"id,string" binding:"required"`
 	MenuName   string  `json:"menuName" binding:"required"`
 	Type       int     `json:"type" binding:"required"`
-	Path       string  `json:"path" binding:"required"`
+	Path       string  `json:"path"`
 	Component  string  `json:"component"`
 	ParentId   int64   `json:"parentId,string"`
 	OrderNum   int     `json:"orderNum"`

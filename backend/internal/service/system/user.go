@@ -123,6 +123,12 @@ func Login(ctx context.Context, req sysmodel.LoginReq) (sysmodel.LoginResp, erro
 	if err != nil {
 		return resp, global.NewError(500, "登录失败", err)
 	}
+	// 获取用户权限
+	permission, err := GetUserAllPermissions(ctx, user.Id)
+	if err != nil {
+		return resp, global.NewError(500, "登录失败", err)
+	}
+	user.UserPermission = permission
 
 	claims := jwt.RegisteredClaims{
 		Issuer:    "flowing",
@@ -183,4 +189,11 @@ func GetUserDetail(ctx context.Context, userId int64) (*sysmodel.User, error) {
 		return nil, global.NewError(500, "获取用户详情失败", err)
 	}
 	return user, nil
+}
+
+func Logout(ctx context.Context, claims *jwt.RegisteredClaims) error {
+	if err := repository.Redis().Del(ctx, claims.ID).Err(); err != nil {
+		return global.NewError(500, "退出登录失败", err)
+	}
+	return nil
 }

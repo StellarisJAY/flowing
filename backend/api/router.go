@@ -19,8 +19,9 @@ func InitRouter(e *gin.Engine) {
 	g := e.Group("/api")
 	g.Use(gin.CustomRecoveryWithWriter(io.Discard, middleware.Recovery())) // 自定义恢复中间件
 	{
-		g.POST("/login", sys.Login)       // 登录
-		g.GET("/captcha", sys.GetCaptcha) // 获取验证码
+		g.POST("/login", sys.Login)                      // 登录
+		g.POST("/logout", middleware.Auth(), sys.Logout) // 退出登录
+		g.GET("/captcha", sys.GetCaptcha)                // 获取验证码
 	}
 	{
 		s := g.Group("/sys")
@@ -31,22 +32,22 @@ func InitRouter(e *gin.Engine) {
 	{
 		u := g.Group("/user")
 		u.Use(middleware.Auth())
-		u.GET("/list", system.ListUser)            // 获取用户列表
-		u.POST("/create", system.CreateUser)       // 创建用户
-		u.PUT("/update", system.UpdateUser)        // 更新用户
-		u.DELETE("/delete/:id", system.DeleteUser) // 删除用户
-		u.GET("/detail", system.GetUserDetail)     // 获取用户详情
+		u.GET("/list", system.ListUser)                                                         // 获取用户列表
+		u.POST("/create", middleware.Permission("system:user:create"), system.CreateUser)       // 创建用户
+		u.PUT("/update", middleware.Permission("system:user:update"), system.UpdateUser)        // 更新用户
+		u.DELETE("/delete/:id", middleware.Permission("system:user:delete"), system.DeleteUser) // 删除用户
+		u.GET("/detail", system.GetUserDetail)                                                  // 获取用户详情
 	}
 	{
 		r := g.Group("/role")
 		r.Use(middleware.Auth())
-		r.GET("/list", system.ListRole)         // 获取角色列表
-		r.POST("/create", system.CreateRole)    // 创建角色
-		r.POST("/grant", system.CreateUserRole) // 为用户授权角色
-		r.POST("/menus", system.SaveRoleMenus)  // 保存角色菜单
-		r.PUT("/update", system.UpdateRole)     // 更新角色
-		r.DELETE("/delete", system.DeleteRole)  // 删除角色
-		r.GET("/menus", system.GetRoleMenus)    // 获取角色菜单
+		r.GET("/list", system.ListRole)                                                     // 获取角色列表
+		r.POST("/create", middleware.Permission("system:role:create"), system.CreateRole)   // 创建角色
+		r.POST("/grant", system.CreateUserRole)                                             // 为用户授权角色
+		r.POST("/menus", system.SaveRoleMenus)                                              // 保存角色菜单
+		r.PUT("/update", middleware.Permission("system:role:update"), system.UpdateRole)    // 更新角色
+		r.DELETE("/delete", middleware.Permission("system:role:delete"), system.DeleteRole) // 删除角色
+		r.GET("/menus", system.GetRoleMenus)                                                // 获取角色菜单
 	}
 	{
 		m := g.Group("/menu")
@@ -73,26 +74,26 @@ func InitRouter(e *gin.Engine) {
 	{
 		d := g.Group("/dict")
 		d.Use(middleware.Auth())
-		d.POST("/item/create", system.CreateDictItem)       // 创建字典项
-		d.POST("/create", system.CreateDict)                // 创建字典
-		d.GET("/list", system.ListDict)                     // 获取字典列表
-		d.GET("/item/list", system.ListDictItem)            // 获取字典项列表
-		d.GET("/item/list/code", system.ListDictItemByCode) // 获取字典项列表
-		d.PUT("/update", system.UpdateDict)                 // 更新字典
-		d.PUT("/item/update", system.UpdateDictItem)        // 更新字典项
-		d.DELETE("/delete", system.DeleteDict)              // 删除字典
-		d.DELETE("/item/delete", system.DeleteDictItem)     // 删除字典项
+		d.POST("/item/create", middleware.Permission("system:dict:item:create"), system.CreateDictItem)   // 创建字典项
+		d.POST("/create", middleware.Permission("system:dict:create"), system.CreateDict)                 // 创建字典
+		d.GET("/list", system.ListDict)                                                                   // 获取字典列表
+		d.GET("/item/list", system.ListDictItem)                                                          // 获取字典项列表
+		d.GET("/item/list/code", system.ListDictItemByCode)                                               // 获取字典项列表
+		d.PUT("/update", middleware.Permission("system:dict:update"), system.UpdateDict)                  // 更新字典
+		d.PUT("/item/update", middleware.Permission("system:dict:item:update"), system.UpdateDictItem)    // 更新字典项
+		d.DELETE("/delete", middleware.Permission("system:dict:delete"), system.DeleteDict)               // 删除字典
+		d.DELETE("/item/delete", middleware.Permission("system:dict:item:delete"), system.DeleteDictItem) // 删除字典项
 	}
 	{
 		m := g.Group("/monitor")
 		m.Use(middleware.Auth())
 		m.GET("/performance", monitor.GetSystemMetrics) // 获取系统指标
 
-		m.GET("/datasource/list", monitor.ListDatasource)        // 获取数据源列表
-		m.POST("/datasource/create", monitor.CreateDatasource)   // 创建数据源
-		m.PUT("/datasource/update", monitor.UpdateDatasource)    // 更新数据源
-		m.DELETE("/datasource/delete", monitor.DeleteDatasource) // 删除数据源
-		m.POST("/datasource/ping", monitor.PingDatasource)       // 测试连接
+		m.GET("/datasource/list", monitor.ListDatasource)                                                                   // 获取数据源列表
+		m.POST("/datasource/create", middleware.Permission("system:monitor:datasource:create"), monitor.CreateDatasource)   // 创建数据源
+		m.PUT("/datasource/update", middleware.Permission("system:monitor:datasource:update"), monitor.UpdateDatasource)    // 更新数据源
+		m.DELETE("/datasource/delete", middleware.Permission("system:monitor:datasource:delete"), monitor.DeleteDatasource) // 删除数据源
+		m.POST("/datasource/ping", middleware.Permission("system:monitor:datasource:ping"), monitor.PingDatasource)         // 测试连接
 	}
 	{
 		k := g.Group("/kb")
@@ -120,5 +121,7 @@ func InitRouter(e *gin.Engine) {
 		a.Use(middleware.Auth())
 		a.POST("/create", agent.CreateAgent) // 创建智能体
 		a.GET("/list", agent.ListAgent)      // 获取智能体列表
+		a.PUT("/config", agent.UpdateConfig) // 更新智能体
+		a.GET("/detail", agent.GetDetail)    // 获取智能体详情
 	}
 }

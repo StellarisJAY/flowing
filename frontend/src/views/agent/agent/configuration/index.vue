@@ -42,7 +42,7 @@ const handleBack = () => {
 .content {
   height: 100%;
   width: 80%;
-  overflow: auto;
   background-color: transparent;
+  display: flex;
 }
 </style>

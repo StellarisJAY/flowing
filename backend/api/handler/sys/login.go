@@ -7,6 +7,7 @@ import (
 	service "flowing/internal/service/system"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func Login(c *gin.Context) {
@@ -22,7 +23,18 @@ func Login(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-
+	cl, ok := c.Get("claims")
+	if !ok {
+		panic(global.ErrUnauthorized)
+	}
+	claims, ok := cl.(*jwt.RegisteredClaims)
+	if !ok {
+		panic(global.ErrUnauthorized)
+	}
+	if err := service.Logout(c, claims); err != nil {
+		panic(err)
+	}
+	c.JSON(200, common.Ok())
 }
 
 func GetCaptcha(c *gin.Context) {

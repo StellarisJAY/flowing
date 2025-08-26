@@ -20,6 +20,9 @@
           await triggerQuery();
         }" />
       </Space>
+      <span v-if="column.dataIndex === 'path'">
+        {{record.type !== 3 ? record.path : record.actionCode}}
+      </span>
     </template>
   </Table>
   <FormDrawer

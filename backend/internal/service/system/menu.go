@@ -15,6 +15,13 @@ func CreateMenu(ctx context.Context, menu sysmodel.CreateMenuReq) error {
 			return errors.New("父级菜单不存在")
 		}
 	}
+	if menu.Type != sysmodel.MenuTypeButton {
+		var count int64
+		repository.DB(ctx).Model(&sysmodel.Menu{}).Where("path = ?", menu.Path).Count(&count)
+		if count > 0 {
+			return global.NewError(500, "路径已存在", nil)
+		}
+	}
 	model := &sysmodel.Menu{
 		BaseModel: common.BaseModel{
 			CreateBy: ctx.Value(global.ContextKeyUser).(sysmodel.User).Id,

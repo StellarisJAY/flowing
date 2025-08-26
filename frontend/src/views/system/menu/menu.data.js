@@ -72,6 +72,7 @@ export const menuFormSchema = [
     type: 'input',
     placeholder: '请输入路径',
     defaultValue: '',
+    hidden: (formState) => formState.type === 3,
   },
   {
     name: 'component',
@@ -79,6 +80,7 @@ export const menuFormSchema = [
     type: 'input',
     placeholder: '请输入前端组件路径',
     defaultValue: '',
+    hidden: (formState) => formState.type === 3,
   },
   {
     name: 'parentId',
@@ -108,6 +110,7 @@ export const menuFormSchema = [
     type: 'input',
     placeholder: '请输入图标',
     defaultValue: '',
+    hidden: (formState) => formState.type === 3,
   },
   {
     name: 'showInNav',
@@ -164,7 +167,7 @@ export const columns = [
     key: 'type',
   },
   {
-    title: '路径',
+    title: '路径/标识',
     dataIndex: 'path',
     key: 'path',
   },

@@ -20,5 +20,6 @@ export const ViewMap = {
   "/views/agent/agent/index": ()=> import("@/views/agent/agent/index.vue"),
   "/views/agent/agent/configuration/index": ()=> import("@/views/agent/agent/configuration/index.vue"),
   "/views/agent/agent/configuration/chat/index": ()=> import("@/views/agent/agent/configuration/chat/index.vue"),
+  "/views/agent/agent/configuration/workflow/index": ()=> import("@/views/agent/agent/configuration/workflow/index.vue"),
   // "/views/agent/knowledge/configuration/index": ()=> import("@/views/agent/knowledge/configuration/index.vue"),
 };

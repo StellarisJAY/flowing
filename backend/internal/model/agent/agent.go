@@ -43,12 +43,21 @@ type CreateAgentReq struct {
 	Public      *bool  `json:"public" form:"public" binding:"required"`
 }
 
+type UpdateAgentConfigReq struct {
+	Id     int64  `json:"id,string" form:"id" binding:"required"`
+	Config string `json:"config" form:"config" binding:"required"`
+}
+
 func CreateAgent(ctx context.Context, agent *Agent) error {
 	return repository.DB(ctx).Create(agent).Error
 }
 
 func UpdateAgent(ctx context.Context, agent *Agent) error {
 	return repository.DB(ctx).Model(&Agent{}).Where("id = ?", agent.Id).Updates(agent).Error
+}
+
+func UpdateConfig(ctx context.Context, id int64, config string) error {
+	return repository.DB(ctx).Model(&Agent{}).Where("id = ?", id).Update("config", config).Error
 }
 
 func ListAgent(ctx context.Context, query ListAgentQuery) ([]*Agent, int64, error) {

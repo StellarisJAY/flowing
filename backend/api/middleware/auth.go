@@ -34,6 +34,7 @@ func Auth() gin.HandlerFunc {
 			panic(global.ErrUnauthorized)
 		}
 		c.Set("user", userInfo)
+		c.Set("claims", claims)
 		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), global.ContextKeyUser, userInfo))
 		c.Next()
 	}

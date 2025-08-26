@@ -1,7 +1,8 @@
 <template>
   <div class="message-container" :class="`message-container-${type}`">
     <div class="avatar">
-      {{ type }}
+      <img :src="avatarRobot" alt="a" width="100%" height="100%" v-if="type === 'assistant'"/>
+      <img :src="avatarHuman" alt="a" width="100%" height="100%" v-else/>
     </div>
     <div class="message-bubble" :class="`message-bubble-${type}`">
       <div class="message-content">
@@ -12,6 +13,8 @@
 </template>
 
 <script lang="js" setup>
+import avatarRobot from '@/assets/svg/avatar_robot.svg';
+import avatarHuman from '@/assets/svg/avatar_human.svg';
 
 defineProps({
   type: {
@@ -31,6 +34,7 @@ defineProps({
  */
 .message-container {
   max-height: 50%;
+  width: 100%;
 }
 /**
  * 消息组件-头像
@@ -56,7 +60,9 @@ defineProps({
   color: #000;
   font-size: 14px;
   max-height: 90%;
-  overflow: auto;
+  overflow-y: auto;
+  word-break: break-word;
+  word-wrap: break-word;
 }
 
 /**

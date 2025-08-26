@@ -50,3 +50,11 @@ func GetAgentDetail(ctx context.Context, id int64) (*agent.Agent, error) {
 	}
 	return a, nil
 }
+
+func UpdateConfig(ctx context.Context, req agent.UpdateAgentConfigReq) error {
+	// TODO 校验配置
+	if err := agent.UpdateConfig(ctx, req.Id, req.Config); err != nil {
+		return global.NewError(500, "更新智能体配置失败", err)
+	}
+	return nil
+}

@@ -10,6 +10,7 @@
         @click="onMenuItemClick"
       />
       <div class="flowing-header-avatar">
+        <IconButton icon="MessageOutlined" shape="circle" type="primary" @click="openAiHelperDrawer" v-if="showChatButton"/>
         <Dropdown>
           <Avatar />
           <template #overlay>
@@ -44,19 +45,13 @@
           <component :is="Component" :key="$route.fullPath" />
         </router-view>
       </div>
-    </Layout.Content>
-
-    <FloatButton type="primary" tooltip="AI助手" @click="openAiHelperDrawer" v-if="showChatButton">
-      <template #icon>
-        <MessageOutlined />
-      </template>
-    </FloatButton>
+    </Layout.Content >
     <ChatDrawer ref="aiHelperDrawer" title="AI助手 (即将上线)" v-if="showChatButton" />
   </Layout>
 </template>
 
 <script lang="js" setup>
-  import { Layout, Menu, Tabs, FloatButton, Dropdown, MenuItem, Avatar } from 'ant-design-vue';
+import { Layout, Menu, Tabs, FloatButton, Dropdown, MenuItem, Avatar, message } from 'ant-design-vue';
   import { computed, ref } from 'vue';
   import { useRouter } from 'vue-router';
   import { usePermissionStore } from '@/stores/permission.js';
@@ -64,6 +59,8 @@
   import { MessageOutlined } from '@ant-design/icons-vue';
   import ChatDrawer from '@/components/Chat/ChatDrawer.vue';
   import {useRoute} from 'vue-router';
+  import { logoutAPI } from '@/api/sys/permission.js';
+import IconButton from '@/components/Button/IconButton.vue';
 
   const route = useRoute();
   const router = useRouter();
@@ -96,9 +93,14 @@
     return route.name !== '聊天页面';
   });
 
-  const logout = () => {
-    userStore.logout();
-    router.replace('/sys/login');
+  const logout = async () => {
+    try {
+      await logoutAPI();
+      await userStore.logout();
+      await router.replace('/sys/login');
+    }catch {
+      message.error('退出登录失败');
+    }
   };
 </script>
 
@@ -132,6 +134,7 @@
     justify-content: flex-end;
     align-items: center;
     padding: 20px;
+    gap: 10px;
   }
 
   .flowing-header-menu {

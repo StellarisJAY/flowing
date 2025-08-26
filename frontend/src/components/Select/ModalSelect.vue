@@ -9,6 +9,7 @@
         style="width: 500px"
         :open="false"
         @change="handleChange"
+        :allowClear="allowClear"
       />
       <Button type="primary" @click="openModal" :disabled="disabled">选择</Button>
     </div>
@@ -70,6 +71,10 @@
     disabled: {
       type: Boolean,
       default: false,
+    },
+    allowClear: {
+      type: Boolean,
+      default: true,
     },
   });
 
