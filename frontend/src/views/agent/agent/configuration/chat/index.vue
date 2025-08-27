@@ -112,7 +112,7 @@
             v-for="item in messages"
             :key="item.id"
             :type="item.type"
-            :message="item.content"
+            :message="item"
           />
         </div>
         <div class="preview-input">
@@ -131,6 +131,7 @@
               type="primary"
               @click="sendMessage"
               :loading="sendLoading"
+              :disabled="sendLoading"
             />
           </div>
         </div>
@@ -361,7 +362,8 @@
   .preview-messages {
     width: 100%;
     height: 70%;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: flow;
     flex-direction: column;
 
@@ -377,7 +379,7 @@
 
   .preview-input {
     width: 100%;
-    height: 20%;
+    height: 120px;
     display: flex;
     justify-content: center;
     align-items: center;

@@ -15,13 +15,16 @@
     </div>
     <div class="chat-content">
       <div class="content-header"></div>
-      <div class="content-messages"></div>
+      <div class="content-messages">
+        <Message v-for="item in messages" :key="item.id" :message="item" :type="item.type" />
+      </div>
       <div :class="['content-input-section', !mode ? '' : 'bordered']">
         <div class="toolbar" v-if="mode">
           <div class="mode-options">
             <span v-if="mode === 'chat'">选择模型: </span>
             <ModelSelect v-if="mode === 'chat'" model-type="llm" style="min-width:30%;max-width: 50%"/>
             <span v-if="mode === 'agent'">选择智能体: </span>
+            <AgentSelect v-if="mode === 'agent'" v-model:value="agentId" />
           </div>
           <div class="close-mode">
             <IconButton
@@ -36,11 +39,14 @@
           <IconButton title="聊天" shape="round" type="default" icon="MessageOutlined" @click="setMode('chat')" class="mode-button" />
         </div>
         <div :class="['section-input-and-bottom', mode ? '' : 'bordered']">
-          <textarea class="input-textarea" />
+          <textarea class="input-textarea" v-model="input" :disabled="sendLoading"/>
           <IconButton
             type="primary"
             icon="SendOutlined"
             shape="circle"
+            :loading="sendLoading"
+            :disbled="sendLoading"
+            @click="handleSendMessage"
           />
         </div>
       </div>
@@ -52,15 +58,32 @@
   import IconButton from '@/components/Button/IconButton.vue';
   import { useRouter } from 'vue-router';
   import ModelSelect from '@/components/AIModel/ModelSelect.vue';
-  import { ref } from 'vue';
+  import { computed, ref, watch } from 'vue';
+  import AgentSelect from '@/components/Agent/AgentSelect.vue';
+  import { useMessageHub } from '@/stores/MessageHub.js';
+  import Message from '@/components/Chat/Message.vue';
 
   const router = useRouter();
   const handleBack = () => router.back();
   const mode = ref('');
+  const agentId = ref('');
+  const messageHub = useMessageHub();
+  const messages = computed(()=>messageHub.messages);
+  const sendLoading = computed(()=>messageHub.isTransmitting());
+
+  const input = ref('');
+
+  watch(agentId, ()=>{
+    messageHub.switchAgent({id: agentId.value});
+  });
 
   const setMode = (value) => {
     mode.value = value;
   };
+
+  const handleSendMessage = async () => {
+    await  messageHub.sendMessage(input.value);
+  }
 </script>
 
 <style scoped>
@@ -94,7 +117,7 @@
     background-color: white;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0;
     padding: 10px;
     justify-content: center;
     align-items: center;
@@ -108,8 +131,9 @@
       width: 90%;
       background-color: #f5f5f5;
       overflow: auto;
-      display: flex;
+      display: flow;
       gap: 10px;
+      padding: 10px;
     }
 
     .bordered {
@@ -143,6 +167,9 @@
     .mode-options {
       height: 100%;
       width: 90%;
+      display: flex;
+      flex-direction: row;
+      gap:10px;
     }
 
     .close-mode {

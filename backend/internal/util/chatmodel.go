@@ -1,10 +1,11 @@
-package messagehub
+package util
 
 import (
 	"context"
 	"errors"
 	"flowing/internal/model/ai"
 	"flowing/internal/model/ai/provider"
+
 	"github.com/cloudwego/eino-ext/components/model/openai"
 	"github.com/cloudwego/eino-ext/components/model/qwen"
 	"github.com/cloudwego/eino/components/model"
@@ -27,10 +28,12 @@ func GetChatModel(ctx context.Context, pm ai.ProviderModelDetail) (model.BaseCha
 		})
 	case ai.ProviderTypeDashscope:
 		config := cnf.(*provider.DashscopeConfig)
+		enableThinking := true
 		cm, err = qwen.NewChatModel(ctx, &qwen.ChatModelConfig{
-			BaseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
-			APIKey:  config.ApiKey,
-			Model:   pm.ModelName,
+			BaseURL:        "https://dashscope.aliyuncs.com/compatible-mode/v1",
+			APIKey:         config.ApiKey,
+			Model:          pm.ModelName,
+			EnableThinking: &enableThinking,
 		})
 	default:
 		return nil, errors.New("unsupported provider type")

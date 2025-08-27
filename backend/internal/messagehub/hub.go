@@ -3,100 +3,19 @@ package messagehub
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flowing/global"
+	runner "flowing/internal/agent"
 	"flowing/internal/model/agent"
-	"flowing/internal/model/ai"
 	"flowing/internal/model/chat"
 	"flowing/internal/model/common"
 	"flowing/internal/repository"
-	"fmt"
-	"github.com/cloudwego/eino/schema"
-	"github.com/gin-gonic/gin"
+	"flowing/internal/util"
 	"io"
-	"time"
+	"log/slog"
+
+	"github.com/gin-gonic/gin"
 )
-
-func MockHandleSendMessage(ctx context.Context, req chat.SendMessageReq) error {
-	writer := ctx.Value(global.ContextKeySSEWriter).(gin.ResponseWriter)
-	messageId := repository.Snowflake().Generate().Int64()
-	conversationId := repository.Snowflake().Generate().Int64()
-	userMessage := chat.Message{
-		BaseModel:      common.BaseModel{Id: messageId},
-		ConversationId: conversationId,
-		Content:        req.Content,
-		Type:           chat.MessageTypeUser,
-	}
-
-	messages := []chat.Message{
-		userMessage,
-		{
-			BaseModel:      common.BaseModel{Id: messageId + 1},
-			ConversationId: conversationId,
-			Content:        "你好",
-			Type:           chat.MessageTypeAssistant,
-		},
-		{
-			BaseModel:      common.BaseModel{Id: messageId + 1},
-			ConversationId: conversationId,
-			Content:        "，我是",
-			Type:           chat.MessageTypeAssistant,
-		},
-		{
-			BaseModel:      common.BaseModel{Id: messageId + 1},
-			ConversationId: conversationId,
-			Content:        "flowing",
-			Type:           chat.MessageTypeAssistant,
-		},
-		{
-			BaseModel:      common.BaseModel{Id: messageId + 1},
-			ConversationId: conversationId,
-			Content:        " AI助手，",
-			Type:           chat.MessageTypeAssistant,
-		},
-		{
-			BaseModel:      common.BaseModel{Id: messageId + 1},
-			ConversationId: conversationId,
-			Content:        "有什么",
-			Type:           chat.MessageTypeAssistant,
-		},
-		{
-			BaseModel:      common.BaseModel{Id: messageId + 1},
-			ConversationId: conversationId,
-			Content:        "可以",
-			Type:           chat.MessageTypeAssistant,
-		},
-		{
-			BaseModel:      common.BaseModel{Id: messageId + 1},
-			ConversationId: conversationId,
-			Content:        "帮助",
-			Type:           chat.MessageTypeAssistant,
-		},
-		{
-			BaseModel:      common.BaseModel{Id: messageId + 1},
-			ConversationId: conversationId,
-			Content:        "你",
-			Type:           chat.MessageTypeAssistant,
-		},
-		{
-			BaseModel:      common.BaseModel{Id: messageId + 1},
-			ConversationId: conversationId,
-			Content:        "的吗？",
-			Type:           chat.MessageTypeAssistant,
-		},
-	}
-
-	// 模拟消息发送
-	for _, msg := range messages {
-		msgData, _ := json.Marshal(msg)
-		_, err := fmt.Fprintf(writer, "data: %s\n\n", string(msgData))
-		if err != nil {
-			return global.NewError(500, "send message failed", err)
-		}
-		writer.Flush()
-		time.Sleep(time.Millisecond * 200)
-	}
-	return nil
-}
 
 func HandleSendMessage(ctx context.Context, req chat.SendMessageReq) error {
 	switch req.Mode {
@@ -105,83 +24,100 @@ func HandleSendMessage(ctx context.Context, req chat.SendMessageReq) error {
 			return handleDebuggerModeSimple(ctx, req)
 		}
 		return global.NewError(500, "暂不支持工作流智能体", nil)
+	case chat.SendMessageModeAgent:
+		return handleAgentMode(ctx, req)
 	default:
 		return global.NewError(500, "暂不支持的聊天模式", nil)
 	}
 }
 
-func handleDebuggerModeSimple(ctx context.Context, req chat.SendMessageReq) error {
-	writer := ctx.Value(global.ContextKeySSEWriter).(gin.ResponseWriter)
+func getAgentConfig(config string, agentType agent.Type) (any, error) {
+	var err error
+	var conf any
+	switch agentType {
+	case agent.TypeSimple:
+		agentConfig := agent.SimpleAgentConfig{}
+		err = json.Unmarshal([]byte(config), &agentConfig)
+		conf = agentConfig
+	default:
+		err = errors.New("暂不支持的智能体类型")
+	}
+	return conf, err
+}
 
+func createAndRunAgent(ctx context.Context, agentDetail *agent.Agent, agentConfig any, req chat.SendMessageReq) error {
+	writer := ctx.Value(global.ContextKeySSEWriter).(gin.ResponseWriter)
+	// 创建智能体运行实例
+	agentRun, err := runner.NewAgentRun(ctx, agentDetail, agentConfig, req.ConversationId)
+	if err != nil {
+		return global.NewError(500, "运行智能体失败", err)
+	}
+	// 为用户输入消息生成id
 	messageId := repository.Snowflake().Generate().Int64()
+	// 为会话生成id
 	if req.ConversationId == 0 {
 		req.ConversationId = repository.Snowflake().Generate().Int64()
 	}
-	userMessage := chat.Message{
+	// 创建用户输入消息
+	inputMessage := chat.Message{
 		BaseModel:      common.BaseModel{Id: messageId},
 		ConversationId: req.ConversationId,
 		Content:        req.Content,
 		Type:           chat.MessageTypeUser,
+		AgentId:        req.AgentId,
+		AgentRunId:     0, // TODO 关联智能体运行实例
 	}
 
+	// 运行智能体
+	agentRun.Run(ctx, inputMessage)
+	for {
+		msg, err := agentRun.Receive()
+		if errors.Is(err, io.EOF) {
+			slog.Info("智能体运行结束", "mode", req.Mode)
+			break
+		}
+		if err != nil {
+			return global.NewError(500, "运行智能体错误", err)
+		}
+		if err := util.SSESendMessage(msg, writer); err != nil {
+			return global.NewError(500, "发送消息错误", err)
+		}
+		writer.Flush()
+	}
+	// TODO 保存聊天记录和会话记录
+	return nil
+
+}
+
+// handleAgentMode 处理调用智能体的聊天
+func handleAgentMode(ctx context.Context, req chat.SendMessageReq) error {
+	// 获取智能体详情
+	agentDetail, err := agent.GetAgentDetail(ctx, req.AgentId)
+	if err != nil {
+		return global.NewError(500, "获取智能体失败", err)
+	}
+	req.AgentConfig = agentDetail.Config
+	// 解析智能体配置
+	agentConfig, err := getAgentConfig(req.AgentConfig, agentDetail.Type)
+	if err != nil {
+		return global.NewError(500, "无效的智能体配置", err)
+	}
+	// 运行智能体
+	return createAndRunAgent(ctx, agentDetail, agentConfig, req)
+}
+
+// handleDebuggerModeSimple 处理调试模式运行简单智能体，前端直接传智能体配置
+func handleDebuggerModeSimple(ctx context.Context, req chat.SendMessageReq) error {
 	var agentConfig agent.SimpleAgentConfig
 	err := json.Unmarshal([]byte(req.AgentConfig), &agentConfig)
 	if err != nil {
 		return global.NewError(500, "无效的智能体配置", err)
 	}
-
-	pm, err := ai.GetProviderModelDetail(ctx, agentConfig.ModelId)
-	if err != nil {
-		return global.NewError(500, "无效的模型ID", err)
+	tempAgent := agent.Agent{
+		BaseModel: common.BaseModel{Id: 0},
+		Name:      "调试运行",
+		Type:      agent.TypeSimple,
+		Config:    req.AgentConfig,
 	}
-
-	chatModel, err := GetChatModel(ctx, *pm)
-	if err != nil {
-		return global.NewError(500, "获取模型失败", err)
-	}
-
-	stream, err := chatModel.Stream(ctx, []*schema.Message{
-		{
-			Role:    schema.User,
-			Content: req.Content,
-		},
-	})
-	if err != nil {
-		return global.NewError(500, "模型调用失败", err)
-	}
-	defer stream.Close()
-
-	// 回送用户消息
-	userMessageData, _ := json.Marshal(userMessage)
-	_, err = fmt.Fprintf(writer, "data: %s\n\n", string(userMessageData))
-	if err != nil {
-		return global.NewError(500, "send message failed", err)
-	}
-	writer.Flush()
-
-	// 助手消息
-	messageId = repository.Snowflake().Generate().Int64()
-	for {
-		chunk, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return global.NewError(500, "模型调用失败", err)
-		}
-		message := chat.Message{
-			BaseModel:      common.BaseModel{Id: messageId},
-			ConversationId: req.ConversationId,
-			Content:        chunk.Content,
-			Type:           chat.MessageTypeAssistant,
-		}
-		messageData, _ := json.Marshal(message)
-		_, err = fmt.Fprintf(writer, "data: %s\n\n", string(messageData))
-		if err != nil {
-			return global.NewError(500, "send message failed", err)
-		}
-		writer.Flush()
-	}
-
-	return nil
+	return createAndRunAgent(ctx, &tempAgent, agentConfig, req)
 }

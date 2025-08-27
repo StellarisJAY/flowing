@@ -5,9 +5,19 @@
       <img :src="avatarHuman" alt="a" width="100%" height="100%" v-else/>
     </div>
     <div class="message-bubble" :class="`message-bubble-${type}`">
-      <div class="message-content">
-        {{ message }}
-      </div>
+      <details v-if="message.thinkingContent">
+        <summary>思考中...</summary>
+        <div v-html="marked.parse(message.thinkingContent)" />
+      </details>
+      <div v-html="marked.parse(message.content)" v-if="type === 'assistant'" />
+      <p v-else>{{message.content}}</p>
+      <details v-if="message.knowledgeReferences">
+        <summary>引用</summary>
+        <details v-for="item in message.knowledgeReferences" :key="item.sliceId">
+          <summary>{{item.documentName}}</summary>
+          <p>{{item.content}}</p>
+        </details>
+      </details>
     </div>
   </div>
 </template>
@@ -15,6 +25,18 @@
 <script lang="js" setup>
 import avatarRobot from '@/assets/svg/avatar_robot.svg';
 import avatarHuman from '@/assets/svg/avatar_human.svg';
+import { marked } from 'marked';
+
+marked.use({
+  // 开启异步渲染
+  async: false,
+  pedantic: false,
+  gfm: true,
+  mangle: false,
+  headerIds: false
+});
+
+
 
 defineProps({
   type: {
@@ -33,7 +55,6 @@ defineProps({
  * 消息组件
  */
 .message-container {
-  max-height: 50%;
   width: 100%;
 }
 /**
@@ -56,10 +77,9 @@ defineProps({
   padding: 10px;
   border-radius: 10px;
   background-color: #f0f0f0;
-  max-width: 60%;
+  max-width: 90%;
   color: #000;
   font-size: 14px;
-  max-height: 90%;
   overflow-y: auto;
   word-break: break-word;
   word-wrap: break-word;
@@ -108,7 +128,7 @@ defineProps({
   color: #fff;
 }
 .message-bubble-assistant {
-  background-color: #28a745;
-  color: #fff;
+  background-color: white;
+  color: black;
 }
 </style>

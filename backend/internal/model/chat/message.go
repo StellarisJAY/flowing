@@ -10,13 +10,23 @@ const (
 	MessageTypeLog       MessageType = "log"       // 日志
 )
 
+type KnowledgeReference struct {
+	KnowledgeBaseId int64  `json:"knowledgeBaseId,string"`
+	DocumentId      int64  `json:"documentId,string"`
+	SliceId         string `json:"sliceId"`
+	Content         string `json:"content"`
+	DocumentName    string `json:"documentName"`
+}
+
 type Message struct {
 	common.BaseModel
-	ConversationId int64       `json:"conversationId,string" gorm:"type:bigint unsigned auto_increment;default:0"`
-	Content        string      `json:"content" gorm:"column:content;type:text;not null;"`
-	Type           MessageType `json:"type" gorm:"column:type;type:varchar(16);not null;"`
-	AgentId        int64       `json:"agentId,string" gorm:"type:bigint;default:0"`
-	AgentRunId     int64       `json:"agentRunId,string" gorm:"type:bigint;default:0"`
+	ConversationId      int64                `json:"conversationId,string" gorm:"type:bigint unsigned auto_increment;default:0"`
+	Content             string               `json:"content" gorm:"column:content;type:text;not null;"`
+	Type                MessageType          `json:"type" gorm:"column:type;type:varchar(16);not null;"`
+	AgentId             int64                `json:"agentId,string" gorm:"type:bigint;default:0"`
+	AgentRunId          int64                `json:"agentRunId,string" gorm:"type:bigint;default:0"`
+	ThinkingContent     string               `json:"thinkingContent" gorm:"column:thinking_content;type:text;not null;"`
+	KnowledgeReferences []KnowledgeReference `json:"knowledgeReferences" gorm:"-"`
 }
 
 func (m *Message) TableName() string {

@@ -38,10 +38,10 @@ export const useMessageHub = defineStore('flowing_message_hub', {
     // 非调试模式发送消息，传agentId，不传agentConfigs
     async sendMessage(text) {
       const data = {
-        message: text,
+        content: text,
         conversationId: this.conversationId ? this.conversationId : '0',
         agentId: this.agentInfo ? this.agentInfo.id : '0',
-        mode: 'normal',
+        mode: 'agent',
       };
       this.state = 'sending';
       await fetchEventStream(MESSAGE_HUB_API+'/send', data, this.onSSEOpen, this.onSSEMessage, this.onSSEError, this.onSSEClose)
@@ -56,6 +56,7 @@ export const useMessageHub = defineStore('flowing_message_hub', {
       if (lastMsg) {
         // 未完成的消息，追加内容
         lastMsg.content += data.content;
+        lastMsg.thinkingContent += data.thinkingContent;
       } else {
         // 新消息，直接添加
         this.messages.push(data);

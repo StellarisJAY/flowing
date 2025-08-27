@@ -137,6 +137,10 @@ func fromResultSetToQueryResult(resultSet milvusclient.ResultSet) []vector.Queri
 func (s *Store) Search(ctx context.Context, coll string, req vector.SearchReq) ([]vector.QueriedSlice, error) {
 	var resultSet []milvusclient.ResultSet
 	var err error
+	_, err = s.client.LoadCollection(ctx, milvusclient.NewLoadCollectionOption(coll))
+	if err != nil {
+		return nil, err
+	}
 	switch req.Type {
 	case vector.SearchTypeFulltext:
 		resultSet, err = s.fulltextSearch(ctx, coll, req)
