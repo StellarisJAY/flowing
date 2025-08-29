@@ -3,6 +3,7 @@ package simple
 import (
 	"context"
 	agentcommon "flowing/internal/agent/common"
+	"flowing/internal/dag"
 	"flowing/internal/docprocess"
 	"flowing/internal/model/agent"
 	"flowing/internal/model/ai"
@@ -10,13 +11,10 @@ import (
 	"flowing/internal/model/kb"
 	"flowing/internal/repository"
 	"flowing/internal/util"
-	"fmt"
 	"io"
-	"log/slog"
 
 	"github.com/cloudwego/eino/components/model"
 	"github.com/cloudwego/eino/components/prompt"
-	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/schema"
 )
 
@@ -67,93 +65,36 @@ func NewAgentRun(ctx context.Context, agent *agent.Agent, config agent.SimpleAge
 
 // Run 运行简单智能体，单独开启goroutine运行
 func (a *AgentRun) Run(ctx context.Context, input chat.Message) {
-	go func() {
-		// 运行错误处理，由于单独开启goroutine运行，通过channel将错误发出
-		defer func() {
-			if err := recover(); err != nil {
-				a.errorChan <- err.(error)
-			}
-			close(a.messageChan)
-			close(a.errorChan)
-		}()
+	// 新建DAG流程图
+	graph := dag.NewGraph()
+	if a.KnowledgeBase != nil {
+		// 如果有知识库检索配置，则创建知识库检索节点
+		graph.AddNode(dag.NewNode("retriever", "retriever", a.retrieverNodeFunc))
+		graph.AddEdge(dag.NewEdge("retriever->chat", "retriever", "chat", nil))
+	}
+	// 聊天模型节点
+	graph.AddNode(dag.NewNode("chat", "chat", a.chatNodeFunc))
+	_ = graph.Compile()
 
-		// 流程的全局状态，包含用户输入和变量列表
-		// TODO 变量列表
-		localState := compose.WithGenLocalState[map[string]any](func(c context.Context) (state map[string]any) {
-			return map[string]any{
-				"agentId": a.Agent.Id,
-				"query":   input.Content,
-			}
-		})
-
-		// 创建简单智能体链，包含知识库retriever节点和模型节点
-		// 输入 map[string]any，输出 *schema.Message
-		chain := compose.NewChain[map[string]any, *schema.Message](localState)
-
-		// 模型输出消息的id
-		messageId := repository.Snowflake().Generate().Int64()
-
-		// 知识库retriever节点
-		if a.KnowledgeBase != nil {
-			retriever, err := docprocess.NewVectorRetriever(ctx, a.KnowledgeBase)
-			if err != nil {
-				panic(err)
-			}
-			// 知识库读取结果转换成messages的lambda节点
-			docToJson := compose.InvokableLambda(func(ctx context.Context, input []*schema.Document) (output map[string]any, err error) {
-				refMessage, err := agentcommon.GetKnowledgeRefMessage(ctx, input, messageId, a.conversationId, a.Agent.Id, 0)
-				if err != nil {
-					slog.Error("创建知识库引用消息失败", "err", err)
-				}
-				if refMessage != nil {
-					a.messageChan <- *refMessage
-				}
-				output, err = agentcommon.DocumentsToMessages("context", schema.System)(ctx, input)
-				return
-			})
-			// 知识库检索，输入query，输出context
-			chain = chain.AppendRetriever(retriever,
-				compose.WithInputKey("query"),
-				compose.WithNodeName("retriever"))
-			// 输入[]*schema.Document，输出map[string][]*schema.Message
-			chain = chain.AppendLambda(docToJson,
-				compose.WithNodeName("docToJson"))
-		}
-
-		// 定义历史消息和提示词
-		promptMessages := prompt.FromMessages(schema.FString,
-			schema.SystemMessage(a.AgentConfig.Prompt),
-			schema.MessagesPlaceholder("context", true),
-			schema.UserMessage("{query}"),
-		)
-		chain = chain.AppendChatTemplate(promptMessages, compose.WithStatePreHandler(agentcommon.MergeMapStateAndInput))
-		chain = chain.AppendChatModel(a.chatModel)
-
-		// 编译智能体流程，创建流式运行
-		runnableChain, err := chain.Compile(ctx)
-		if err != nil {
-			panic(fmt.Errorf("failed to compile chain: %w", err))
-		}
-		// 将填充conversationId和messageId的用户输入推送到messageChan
-		a.messageChan <- input
-
-		stream, err := runnableChain.Stream(ctx, map[string]any{
-			"query": input.Content,
-		})
-		if err != nil {
-			panic(fmt.Errorf("failed to start stream: %w", err))
-		}
-
-		// 消费模型输出，转换格式后推送到messageChan
-		if err := agentcommon.StreamConsumer(stream, a.messageChan, agentcommon.StreamConsumerMeta{
-			ConversationId: a.conversationId,
-			AgentId:        a.Agent.Id,
-			AgentRunId:     0,
-			MessageId:      messageId,
-		}); err != nil {
-			panic(err)
-		}
-	}()
+	// 模型输出消息的id
+	messageId := repository.Snowflake().Generate().Int64()
+	// 流程初始参数
+	// TODO 前端配置的变量列表
+	variables := map[string]any{
+		"query":     input,
+		"messageId": messageId,
+	}
+	runner := dag.NewGraphRun(graph)
+	a.messageChan <- input
+	// 非组赛模式运行dag，由于是单线流程，所以并行度为1
+	if err := runner.Run(dag.WithNonBlocking(),
+		dag.WithContext(ctx),
+		dag.WithCallback(a.callback),
+		dag.WithParallelNum(1),
+		dag.WithPanicHandler(a.panicHandler),
+		dag.WithVariables(variables)); err != nil {
+		panic(err)
+	}
 }
 
 func (a *AgentRun) Receive() (chat.Message, error) {
@@ -168,4 +109,89 @@ func (a *AgentRun) Receive() (chat.Message, error) {
 		return chat.Message{}, io.EOF
 	}
 	return msg, err
+}
+
+func (a *AgentRun) callback(event dag.CallbackEvent) {
+	if event.Type == dag.EventTypeEnd {
+		close(a.messageChan)
+		close(a.errorChan)
+	}
+}
+
+// chatNodeFunc 聊天模型节点
+func (a *AgentRun) chatNodeFunc(ctx context.Context, _ dag.Node) (result dag.NodeFuncReturn) {
+	contextMessages := ctx.Value("context")
+	messageId := ctx.Value("messageId").(int64)
+	vs := map[string]any{
+		"query": ctx.Value("query").(chat.Message).Content,
+	}
+	if contextMessages != nil {
+		vs["context"] = contextMessages.([]*schema.Message)
+	}
+	// 生成提示词和历史消息
+	promptMessages := prompt.FromMessages(schema.FString,
+		schema.SystemMessage(a.AgentConfig.Prompt),
+		schema.MessagesPlaceholder("context", true),
+		schema.UserMessage("{query}"),
+	)
+	prompts, err := promptMessages.Format(ctx, vs)
+	if err != nil {
+		result.Error = err
+		return
+	}
+	// 创建聊天流
+	stream, err := a.chatModel.Stream(ctx, prompts)
+	if err != nil {
+		result.Error = err
+		return
+	}
+	// 消费聊天流
+	err = agentcommon.StreamConsumer(stream, a.messageChan, agentcommon.StreamConsumerMeta{
+		ConversationId: a.conversationId,
+		AgentId:        a.Agent.Id,
+		AgentRunId:     0,
+		MessageId:      messageId,
+	})
+	if err != nil {
+		result.Error = err
+		return
+	}
+	return
+}
+
+func (a *AgentRun) retrieverNodeFunc(ctx context.Context, _ dag.Node) (result dag.NodeFuncReturn) {
+	query := ctx.Value("query").(chat.Message)
+	messageId := ctx.Value("messageId").(int64)
+
+	retriever, err := docprocess.NewVectorRetriever(ctx, a.KnowledgeBase, a.AgentConfig.KbSearchOption)
+	if err != nil {
+		result.Error = err
+		return
+	}
+	docs, err := retriever.Retrieve(ctx, query.Content)
+	if err != nil {
+		result.Error = err
+		return
+	}
+	refMessage, err := agentcommon.GetKnowledgeRefMessage(ctx, docs, messageId, a.conversationId, a.Agent.Id, 0)
+	if err != nil {
+		result.Error = err
+		return
+	}
+	if refMessage != nil {
+		a.messageChan <- *refMessage
+	}
+	output, err := agentcommon.DocumentsToMessages("context", schema.System)(ctx, docs)
+	if err != nil {
+		result.Error = err
+		return
+	}
+	result.Output = output
+	return
+}
+
+func (a *AgentRun) panicHandler(err error) {
+	a.errorChan <- err
+	close(a.messageChan)
+	close(a.errorChan)
 }

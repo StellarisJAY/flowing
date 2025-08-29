@@ -5,7 +5,7 @@
       <img :src="avatarHuman" alt="a" width="100%" height="100%" v-else/>
     </div>
     <div class="message-bubble" :class="`message-bubble-${type}`">
-      <details v-if="message.thinkingContent">
+      <details v-if="message.thinkingContent" open>
         <summary>思考中...</summary>
         <div v-html="marked.parse(message.thinkingContent)" />
       </details>

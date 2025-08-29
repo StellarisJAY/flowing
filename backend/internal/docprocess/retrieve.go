@@ -2,6 +2,7 @@ package docprocess
 
 import (
 	"context"
+	"flowing/internal/model/agent"
 	"flowing/internal/model/ai"
 	"flowing/internal/model/kb"
 	"flowing/internal/model/monitor"
@@ -20,9 +21,10 @@ type VectorRetriever struct {
 	knowledgeBase  *kb.KnowledgeBase
 	datasource     *monitor.Datasource
 	embeddingModel *ai.ProviderModelDetail
+	option         *agent.KbSearchOption
 }
 
-func NewVectorRetriever(ctx context.Context, knowledgeBase *kb.KnowledgeBase) (*VectorRetriever, error) {
+func NewVectorRetriever(ctx context.Context, knowledgeBase *kb.KnowledgeBase, option *agent.KbSearchOption) (*VectorRetriever, error) {
 	// 获取数据源详情
 	datasource, err := monitor.GetDatasource(ctx, knowledgeBase.DatasourceId)
 	if err != nil {
@@ -43,6 +45,7 @@ func NewVectorRetriever(ctx context.Context, knowledgeBase *kb.KnowledgeBase) (*
 		knowledgeBase:  knowledgeBase,
 		datasource:     datasource,
 		embeddingModel: embeddingModel,
+		option:         option,
 	}, nil
 }
 
@@ -58,13 +61,15 @@ func (v *VectorRetriever) Retrieve(ctx context.Context, query string, opts ...re
 		return nil, err
 	}
 	collName := util.KnowledgeBaseCollectionName(v.knowledgeBase.Id)
-	// TODO 查询选项
+	// 查询选项
 	docs, err := v.store.Search(ctx, collName, vector.SearchReq{
-		Text:      query,
-		TopK:      10,
-		Type:      vector.SearchTypeVector,
-		Threshold: 0.5,
-		Embedding: util.Float64EmbeddingTo32(embeddings[0]),
+		Text:       query,
+		TopK:       v.option.TopK,
+		Type:       vector.SearchType(v.option.SearchType),
+		Threshold:  v.option.Threshold,
+		Embedding:  util.Float64EmbeddingTo32(embeddings[0]),
+		HybridType: vector.HybridType(v.option.HybridType),
+		Weight:     v.option.Weight,
 	})
 	if err != nil {
 		return nil, err
