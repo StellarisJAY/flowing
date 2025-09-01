@@ -17,7 +17,7 @@ import (
 
 func initialize(conf *config.Config) {
 	global.InitLogger(conf)
-	global.InitScheduler(conf)
+	global.InitWorkerPool(conf)
 	// 初始化数据库
 	repository.Init(conf)
 	migration.MigrateDB()

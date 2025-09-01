@@ -22,8 +22,9 @@ const (
 )
 
 type CallbackEvent struct {
-	Type EventType
-	Data any
+	Type       EventType
+	Data       any
+	GlobalData map[string]any
 }
 
 type GraphRun struct {
@@ -62,7 +63,14 @@ func NewGraphRun(graph *Graph) *GraphRun {
 		skippedNodesMutex: sync.RWMutex{},
 		execResults:       make([]ExecInfo, 0),
 	}
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	g.cancel = cancelFunc
+	g.context.ctx = ctx
 	return g
+}
+
+func NewChainRun(chain *Chain) *GraphRun {
+	return NewGraphRun((*Graph)(chain))
 }
 
 type RunOption func(run *GraphRun) error
@@ -77,7 +85,7 @@ func WithParallelNum(num int) RunOption {
 
 func WithTimeout(timeout time.Duration) RunOption {
 	return func(run *GraphRun) error {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		ctx, cancel := context.WithTimeout(run.context.ctx, timeout)
 		run.cancel = cancel
 		run.context.ctx = ctx
 		return nil
@@ -117,7 +125,9 @@ func WithVariables(variables map[string]any) RunOption {
 
 func WithContext(ctx context.Context) RunOption {
 	return func(run *GraphRun) error {
-		run.context.ctx = ctx
+		cancelCtx, cancelFunc := context.WithCancel(ctx)
+		run.context.ctx = cancelCtx
+		run.cancel = cancelFunc
 		return nil
 	}
 }
@@ -131,6 +141,16 @@ func WithCallback(callback func(event CallbackEvent)) RunOption {
 	}
 }
 
+func WithWorkerPool(pool *ants.Pool) RunOption {
+	return func(run *GraphRun) error {
+		if pool == nil {
+			return fmt.Errorf("worker pool is nil")
+		}
+		run.workers = pool
+		return nil
+	}
+}
+
 func (g *GraphRun) Run(options ...RunOption) error {
 	for _, option := range options {
 		if err := option(g); err != nil {
@@ -138,11 +158,13 @@ func (g *GraphRun) Run(options ...RunOption) error {
 		}
 	}
 
-	workers, err := ants.NewPool(g.parallelNum, ants.WithPreAlloc(true), ants.WithPanicHandler(g.panicHandler))
-	if err != nil {
-		return fmt.Errorf("create worker pool error: %w", err)
+	if g.workers == nil && g.parallelNum > 1 {
+		workers, err := ants.NewPool(g.parallelNum, ants.WithPreAlloc(true), ants.WithPanicHandler(g.panicHandler))
+		if err != nil {
+			return fmt.Errorf("create worker pool error: %w", err)
+		}
+		g.workers = workers
 	}
-	g.workers = workers
 
 	// 非阻塞模式，开启goroutine
 	if g.nonBlocking {
@@ -154,8 +176,12 @@ func (g *GraphRun) Run(options ...RunOption) error {
 	return nil
 }
 
+func (g *GraphRun) Cancel() {
+	g.cancel()
+}
+
 func (g *GraphRun) run() {
-	g.callbackFn(CallbackEvent{Type: EventTypeStart})
+	g.callbackFn(CallbackEvent{Type: EventTypeStart, GlobalData: g.context.variables})
 	if g.parallelNum == 1 {
 		g.serialRun()
 	} else {
@@ -169,7 +195,7 @@ func (g *GraphRun) run() {
 		}
 		g.parallelRun()
 	}
-	g.callbackFn(CallbackEvent{Type: EventTypeEnd})
+	g.callbackFn(CallbackEvent{Type: EventTypeEnd, GlobalData: g.context.variables})
 }
 
 // serialRun 串行执行
@@ -231,6 +257,7 @@ func (g *GraphRun) serialRun() {
 		g.callbackFn(CallbackEvent{
 			EventTypeNodeEnd,
 			execRes,
+			g.context.variables,
 		})
 	}
 }
@@ -318,5 +345,6 @@ func (g *GraphRun) parallelRunNodeFunc(node *Node) {
 	g.callbackFn(CallbackEvent{
 		EventTypeNodeEnd,
 		execRes,
+		g.context.variables,
 	})
 }

@@ -66,25 +66,25 @@ func NewAgentRun(ctx context.Context, agent *agent.Agent, config agent.SimpleAge
 // Run 运行简单智能体，单独开启goroutine运行
 func (a *AgentRun) Run(ctx context.Context, input chat.Message) {
 	// 新建DAG流程图
-	graph := dag.NewGraph()
+	chain := dag.NewChain()
 	if a.KnowledgeBase != nil {
 		// 如果有知识库检索配置，则创建知识库检索节点
-		graph.AddNode(dag.NewNode("retriever", "retriever", a.retrieverNodeFunc))
-		graph.AddEdge(dag.NewEdge("retriever->chat", "retriever", "chat", nil))
+		chain.AddNode(dag.NewNode("retriever", "retriever", a.retrieverNodeFunc))
 	}
 	// 聊天模型节点
-	graph.AddNode(dag.NewNode("chat", "chat", a.chatNodeFunc))
-	_ = graph.Compile()
+	chain.AddNode(dag.NewNode("chat", "chat", a.chatNodeFunc))
+	_ = chain.Compile()
 
 	// 模型输出消息的id
 	messageId := repository.Snowflake().Generate().Int64()
 	// 流程初始参数
 	// TODO 前端配置的变量列表
 	variables := map[string]any{
-		"query":     input,
-		"messageId": messageId,
+		"query":          input,
+		"messageId":      messageId,
+		"conversationId": a.conversationId,
 	}
-	runner := dag.NewGraphRun(graph)
+	runner := dag.NewChainRun(chain)
 	a.messageChan <- input
 	// 非组赛模式运行dag，由于是单线流程，所以并行度为1
 	if err := runner.Run(dag.WithNonBlocking(),
