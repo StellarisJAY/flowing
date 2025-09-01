@@ -15,7 +15,6 @@ type GraphContext struct {
 func newGraphContext() *GraphContext {
 	return &GraphContext{
 		variables: make(map[string]interface{}),
-		ctx:       context.Background(),
 		mutex:     sync.RWMutex{},
 	}
 }
