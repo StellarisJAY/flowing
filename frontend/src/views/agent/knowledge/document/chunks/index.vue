@@ -84,18 +84,10 @@
       padding: 10px;
     }
     .content:focus {
-      height: 100%;
-      width: 100%;
       border: #0081dc 2px solid;
     }
     .content:hover {
-      height: 100%;
-      width: 100%;
       border: #0081dc 2px solid;
-    }
-    .content-wrapper::-webkit-scrollbar {
-      width: 0;
-      height: 0;
     }
     textarea:focus {
       outline: none;
@@ -103,6 +95,10 @@
     textarea:disabled {
       background-color: white;
       outline: none;
+    }
+    .content::-webkit-scrollbar {
+      width: 0;
+      height: 0;
     }
     .pagination-wrapper {
       height: 10%;
