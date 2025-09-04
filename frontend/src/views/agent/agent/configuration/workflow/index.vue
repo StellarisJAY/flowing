@@ -4,7 +4,7 @@
       <div class="header-title"> 工作流配置 </div>
       <div class="header-toolbar">
         <Button>调试</Button>
-        <Button type="primary">保存</Button>
+        <Button type="primary" @click="save">保存</Button>
       </div>
     </div>
 
@@ -16,29 +16,33 @@
         <!-- 背景 -->
         <Background pattern-color="#81818a" />
         <!-- 自定义节点样式 -->
-        <template #node-base="specialNodeProps">
-          <BaseNode v-bind="specialNodeProps" />
+        <template #node-base="nodeProps">
+          <BaseNode v-bind="nodeProps" @click="()=>openNodeDrawer(nodeProps)" />
         </template>
         <!-- 自定义边样式 -->
-        <template #edge-base="specialEdgeProps">
-          <BaseEdge v-bind="specialEdgeProps" />
+        <template #edge-base="edgeProps">
+          <BaseEdge v-bind="edgeProps" />
         </template>
       </VueFlow>
     </div>
+
+    <NodeDrawer ref="nodeDrawerRef" />
   </div>
 </template>
 <script setup lang="js">
   import './index.css';
   import { Button } from 'ant-design-vue';
   import { useWorkflowStore } from '@/stores/workflow.js';
-  import { computed } from 'vue';
+  import { computed, ref } from 'vue';
   import { VueFlow } from '@vue-flow/core';
   import { Background } from '@vue-flow/background';
   import BaseEdge from '@/components/workflow/BaseEdge.vue';
   import BaseNode from '@/components/workflow/BaseNode.vue';
   import { useVueFlow } from '@vue-flow/core';
   import AddNodeCard from '@/components/workflow/AddNodeCard.vue';
+  import NodeDrawer from '@/components/workflow/NodeDrawer.vue';
 
+  const nodeDrawerRef = ref();
   const { onConnect, onNodeDragStop, onViewportChangeEnd } = useVueFlow();
 
   // 连接事件，更新draft的edges
@@ -59,6 +63,16 @@
   const workflowStore = useWorkflowStore();
   // nodes和edges，只读，所有修改通过pinia action完成
   const draft = computed(() => workflowStore.draft);
+
+  const openNodeDrawer = (nodeProps) => {
+    nodeDrawerRef.value.open(nodeProps.id, nodeProps.data, nodeProps.data.config);
+  };
+
+  const save = () => {
+    // TODO 错误检查
+    // TODO 定时保存
+    workflowStore.save();
+  }
 </script>
 <style>
   .workflow-pane {
