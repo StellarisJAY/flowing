@@ -23,6 +23,8 @@ func CreateAgent(ctx context.Context, req agent.CreateAgentReq) error {
 	switch a.Type {
 	case agent.TypeSimple:
 		config = agent.DefaultSimpleAgentConfig()
+	case agent.TypeWorkflow:
+		config = agent.InitialWorkflowConfig
 	default:
 		return global.NewError(500, "不支持的智能体类型", nil)
 	}

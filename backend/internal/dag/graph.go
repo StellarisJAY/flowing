@@ -76,6 +76,21 @@ func (g *Graph) Compile() error {
 	return nil
 }
 
+func (g *Graph) SetNodeFunc(id string, nodeFunc NodeFunc) {
+	for _, node := range g.nodes {
+		if node.id == id {
+			node.nodeFunc = nodeFunc
+			return
+		}
+	}
+}
+
+func (g *Graph) ForCompiledPath(fn func(n Node)) {
+	for _, node := range g.path {
+		fn(*node)
+	}
+}
+
 // kahnCheckLoop kahn算法检查是否有环
 func (g *Graph) kahnCheckLoop() (bool, []*Node) {
 	// 复制一份边列表，用来在kahn算法中做删除，保留原图的边列表不变

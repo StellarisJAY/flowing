@@ -5,14 +5,14 @@
       :position="Position.Left"
       class="base-handle"
       :id="`${id}-target`"
-      v-if="!data.hideTargetHandle"
+      v-if="showTargetHandle(data.type)"
     />
     <Handle
       type="source"
       :position="Position.Right"
       class="base-handle"
       :id="`${id}-source`"
-      v-if="!data.hideSargetHandle"
+      v-if="showSourceHandle(data.type)"
     />
     <div class="base-node-header">
       <div class="icon-title">
@@ -48,6 +48,7 @@
   import robotIcon from '@/assets/svg/avatar_robot.svg';
   import knowledgeIcon from '@/assets/svg/ext_file_generic_icon.svg';
   import { computed } from 'vue';
+  import { showSourceHandle, showTargetHandle } from '@/stores/workflow.js';
 
   const props = defineProps({
     id: {

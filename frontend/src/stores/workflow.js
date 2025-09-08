@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
 import { MarkerType } from '@vue-flow/core';
 import { v4 as uuid } from 'uuid';
+import { getDetail, saveConfig } from '@/api/ai/agent.api.js';
+import { message } from 'ant-design-vue';
 
 // 开始节点原型
 const startNodeProto = {
@@ -136,6 +138,14 @@ export const allowAddOutputVariable = (nodeType) => {
 // 生成变量id
 export const genVariableId = (nodeId, varName) => {
   return `${nodeId}.${varName}`;
+};
+
+export const showSourceHandle = (nodeType) => {
+  return true;
+};
+
+export const showTargetHandle = (nodeType) => {
+  return nodeType !== 'start';
 };
 
 // 当前正在编辑或正在查看的流程store
@@ -280,10 +290,27 @@ export const useWorkflowStore = defineStore('flowing_workflow', {
       }
     },
     // 保存
-    save() {
-      console.log(this.draft);
+    async save(id) {
+      try {
+        await saveConfig({
+          id,
+          config: JSON.stringify(this.draft),
+        });
+        message.success('保存成功');
+      } catch (err) {
+        console.log(err);
+        message.error('保存失败');
+      }
     },
     // 加载
-    load(id) {},
+    async load(id) {
+      try {
+        const { data } = await getDetail(id);
+        this.draft = JSON.parse(data.config);
+      }catch (err) {
+        console.log(err);
+        message.error('加载流程失败');
+      }
+    },
   },
 });

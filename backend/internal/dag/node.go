@@ -31,3 +31,15 @@ type NodeFuncReturn struct {
 }
 
 type NodeFunc func(ctx context.Context, node Node) NodeFuncReturn
+
+func (n *Node) Id() string {
+	return n.id
+}
+
+func (n *Node) Children() []string {
+	children := make([]string, len(n.children))
+	for i, child := range n.children {
+		children[i] = child.Id()
+	}
+	return children
+}

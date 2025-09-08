@@ -17,7 +17,7 @@
         <Background pattern-color="#81818a" />
         <!-- 自定义节点样式 -->
         <template #node-base="nodeProps">
-          <BaseNode v-bind="nodeProps" @click="()=>openNodeDrawer(nodeProps)" />
+          <BaseNode v-bind="nodeProps" @click="() => openNodeDrawer(nodeProps)" />
         </template>
         <!-- 自定义边样式 -->
         <template #edge-base="edgeProps">
@@ -33,7 +33,7 @@
   import './index.css';
   import { Button } from 'ant-design-vue';
   import { useWorkflowStore } from '@/stores/workflow.js';
-  import { computed, ref } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { VueFlow } from '@vue-flow/core';
   import { Background } from '@vue-flow/background';
   import BaseEdge from '@/components/workflow/BaseEdge.vue';
@@ -41,6 +41,18 @@
   import { useVueFlow } from '@vue-flow/core';
   import AddNodeCard from '@/components/workflow/AddNodeCard.vue';
   import NodeDrawer from '@/components/workflow/NodeDrawer.vue';
+  import { useRouter, useRoute } from 'vue-router';
+  import { useGlobalStore } from '@/stores/global.js'
+
+  const globalStore = useGlobalStore();
+
+  const router = useRouter();
+  const route = useRoute();
+
+  const workflowId = route.query.id;
+  if (!workflowId) {
+    router.replace({ path: '/agent/apps' });
+  }
 
   const nodeDrawerRef = ref();
   const { onConnect, onNodeDragStop, onViewportChangeEnd } = useVueFlow();
@@ -68,11 +80,19 @@
     nodeDrawerRef.value.open(nodeProps.id, nodeProps.data, nodeProps.data.config);
   };
 
-  const save = () => {
-    // TODO 错误检查
-    // TODO 定时保存
-    workflowStore.save();
-  }
+  const save = async () => {
+    await workflowStore.save(workflowId);
+  };
+
+  const load = async () => {
+    globalStore.setLoading(true);
+    await workflowStore.load(workflowId);
+    globalStore.setLoading(false);
+  };
+
+  onMounted(async () => {
+    await load();
+  });
 </script>
 <style>
   .workflow-pane {

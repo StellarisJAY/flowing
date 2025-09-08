@@ -26,6 +26,7 @@ type Message struct {
 	AgentId             int64                `json:"agentId,string" gorm:"type:bigint;default:0"`
 	AgentRunId          int64                `json:"agentRunId,string" gorm:"type:bigint;default:0"`
 	ThinkingContent     string               `json:"thinkingContent" gorm:"column:thinking_content;type:text;not null;"`
+	Section             int                  `json:"section" gorm:"column:section;type:int;default:0"`
 	KnowledgeReferences []KnowledgeReference `json:"knowledgeReferences" gorm:"-"`
 }
 
