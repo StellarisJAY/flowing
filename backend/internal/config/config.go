@@ -41,4 +41,8 @@ type Config struct {
 		Size    int           `yaml:"size"`
 		Timeout time.Duration `yaml:"timeout"`
 	} `yaml:"gopool"`
+	KnowledgeGraph struct {
+		EntityPrompt   string `yaml:"entityPrompt"`
+		RelationPrompt string `yaml:"relationPrompt"`
+	} `yaml:"knowledge_graph"`
 }

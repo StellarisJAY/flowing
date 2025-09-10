@@ -45,12 +45,14 @@ func CreateKnowledgeBase(ctx context.Context, req kb.CreateKnowledgeBaseReq) err
 		BaseModel: common.BaseModel{
 			CreateBy: ctx.Value(global.ContextKeyUser).(system.User).Id,
 		},
-		Name:           req.Name,
-		Description:    req.Description,
-		DatasourceId:   req.DatasourceId,
-		EmbeddingModel: req.EmbeddingModel,
-		Enable:         req.Enable,
-		Public:         req.Public,
+		Name:                 req.Name,
+		Description:          req.Description,
+		DatasourceId:         req.DatasourceId,
+		EmbeddingModel:       req.EmbeddingModel,
+		Enable:               req.Enable,
+		Public:               req.Public,
+		EnableKnowledgeGraph: req.EnableKnowledgeGraph,
+		ChatModel:            req.ChatModel,
 	}
 
 	return repository.Tx(ctx, func(c context.Context) error {
@@ -81,10 +83,12 @@ func UpdateKnowledgeBase(ctx context.Context, req kb.UpdateKnowledgeBaseReq) err
 		BaseModel: common.BaseModel{
 			Id: req.Id,
 		},
-		Name:        req.Name,
-		Description: req.Description,
-		Enable:      req.Enable,
-		Public:      req.Public,
+		Name:                 req.Name,
+		Description:          req.Description,
+		Enable:               req.Enable,
+		Public:               req.Public,
+		EnableKnowledgeGraph: req.EnableKnowledgeGraph,
+		ChatModel:            req.ChatModel,
 	})
 	if err != nil {
 		return global.NewError(500, "更新知识库失败", err)

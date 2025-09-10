@@ -6,10 +6,12 @@ import (
 	"flowing/global"
 	"flowing/internal/dag"
 	"flowing/internal/docprocess"
+	"flowing/internal/model/ai"
 	"flowing/internal/model/kb"
 	"flowing/internal/model/monitor"
 	"flowing/internal/repository"
 	"flowing/internal/repository/vector"
+	"flowing/internal/util"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -30,6 +32,8 @@ type ParseTask struct {
 	knowledgeBase *kb.KnowledgeBase
 	datasource    *monitor.Datasource
 	doc           *kb.Document
+	kgModelDetail *ai.ProviderModelDetail
+	extractKg     bool
 }
 
 func CancelTask(ctx context.Context, id int64) error {
@@ -119,6 +123,15 @@ func CreateTask(ctx context.Context, req kb.CreateTaskReq) error {
 		}
 		pt.datasource = datasource
 		pt.doc = doc
+		// 获取知识抽取模型
+		pt.extractKg = *pt.knowledgeBase.EnableKnowledgeGraph
+		if *pt.knowledgeBase.EnableKnowledgeGraph {
+			kgModelDetail, err := ai.GetProviderModelDetail(ctx, pt.knowledgeBase.ChatModel)
+			if err != nil {
+				return global.NewError(400, "知识抽取模型不存在", err)
+			}
+			pt.kgModelDetail = kgModelDetail
+		}
 		// 运行任务
 		if err := runTask(pt); err != nil {
 			return global.NewError(500, "创建任务失败", err)
@@ -134,6 +147,10 @@ func runTask(p *ParseTask) error {
 		dag.NewNode("embedding", "embedding", p.embeddingNodeFunc),
 		dag.NewNode("store", "store", p.storeNodeFunc),
 	)
+	// 知识图谱节点
+	if p.extractKg {
+		chain.AddNode(dag.NewNode("knowledge_graph", "knowledge_graph", p.extractKnowledgeGraph))
+	}
 	if err := chain.Compile(); err != nil {
 		return err
 	}
@@ -274,6 +291,30 @@ func (p *ParseTask) storeNodeFunc(ctx context.Context, _ dag.Node) (result dag.N
 	err = vectorStore.Add(ctx, KnowledgeBaseCollectionName(p.doc.KnowledgeBaseId), vectors)
 	if err != nil {
 		panic(fmt.Errorf("存储向量失败: %w", err))
+	}
+	return
+}
+
+func (p *ParseTask) extractKnowledgeGraph(ctx context.Context, _ dag.Node) (result dag.NodeFuncReturn) {
+	// 知识抽取
+	chatModel, err := util.GetChatModel(ctx, *p.kgModelDetail, true)
+	if err != nil {
+		panic(fmt.Errorf("获取聊天模型失败: %w", err))
+	}
+	builder, err := docprocess.NewKnowledgeGraphBuilder(repository.Config().KnowledgeGraph.EntityPrompt,
+		repository.Config().KnowledgeGraph.RelationPrompt, chatModel)
+	if err != nil {
+		panic(fmt.Errorf("创建知识图谱构建器失败: %w", err))
+	}
+	chunks := ctx.Value("sliced_chunks").([]*schema.Document)
+	// 知识抽取
+	graph, err := builder.Build(ctx, chunks)
+	if err != nil {
+		panic(fmt.Errorf("构建知识图谱失败: %w", err))
+	}
+	// TODO 知识图谱存储
+	result.Output = map[string]any{
+		"knowledge_graph": graph,
 	}
 	return
 }

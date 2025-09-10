@@ -58,9 +58,24 @@
         <div v-if="column.dataIndex === 'task'">
           <Tooltip title="解析状态，点击查看日志">
             <Tag v-if="!record.task">未解析</Tag>
-            <Tag v-else-if="isTaskSuccess(record.task)" color="green" @click="()=>openTaskLogModal(record)">已解析</Tag>
-            <Tag v-else-if="isTaskFailed(record.task)" color="red" @click="()=>openTaskLogModal(record)">解析失败</Tag>
-            <Tag v-else-if="isTaskRunning(record.task)" color="default" @click="()=>openTaskLogModal(record)">解析中...</Tag>
+            <Tag
+              v-else-if="isTaskSuccess(record.task)"
+              color="green"
+              @click="() => openTaskLogModal(record)"
+              >已解析</Tag
+            >
+            <Tag
+              v-else-if="isTaskFailed(record.task)"
+              color="red"
+              @click="() => openTaskLogModal(record)"
+              >解析失败</Tag
+            >
+            <Tag
+              v-else-if="isTaskRunning(record.task)"
+              color="default"
+              @click="() => openTaskLogModal(record)"
+              >解析中...</Tag
+            >
           </Tooltip>
         </div>
       </template>
@@ -180,7 +195,7 @@
       path: '/agent/knowledge/document/chunks',
       query: {
         id: record.id,
-      }
+      },
     });
   };
 

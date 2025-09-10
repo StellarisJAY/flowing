@@ -40,6 +40,24 @@ export const knowledgeFormSchema = [
     disabled: (formState) => formState.id !== undefined,
   },
   {
+    name: 'enableKnowledgeGraph',
+    label: '是否启用知识图谱',
+    type: 'switch',
+    placeholder: '请选择是否启用知识图谱',
+    defaultValue: false,
+  },
+  {
+    name: 'chatModel',
+    label: '聊天模型(生成知识图谱使用)',
+    type: 'modelSelect',
+    placeholder: '请选择聊天模型',
+    defaultValue: '',
+    componentProps: {
+      modelType: 'llm',
+    },
+    hidden: (formState) => !formState.enableKnowledgeGraph,
+  },
+  {
     name: 'enable',
     label: '是否启用',
     type: 'switch',
@@ -60,11 +78,9 @@ export const knowledgeFormRules = {
   embeddingModel: [
     { required: true, message: '请选择嵌入模型(请先在模型管理中配置嵌入模型)', trigger: 'submit' },
   ],
-  enable: [{ required: true, message: '请选择是否启用', trigger: 'submit' }],
   datasource: [
     { required: true, message: '请选择数据源(请先在数据源管理中配置向量库)', trigger: 'submit' },
   ],
-  public: [{ required: true, message: '请选择是否公开', trigger: 'submit' }],
 };
 
 export const searchFormSchema = [

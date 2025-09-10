@@ -11,16 +11,19 @@ import (
 
 type KnowledgeBase struct {
 	common.BaseModel
-	Name           string `json:"name" gorm:"type:varchar(255);not null"`            // 知识库名称
-	Description    string `json:"description" gorm:"type:varchar(255);not null"`     // 介绍
-	DatasourceId   int64  `json:"datasourceId,string" gorm:"type:bigint;not null"`   // 数据源ID
-	EmbeddingModel int64  `json:"embeddingModel,string" gorm:"type:bigint;not null"` // 嵌入模型ID
-	Enable         *bool  `json:"enable" gorm:"type:boolean;not null;default:0"`     // 是否启用
-	Public         *bool  `json:"public" gorm:"type:boolean;not null;default:0"`     // 是否公开
+	Name                 string `json:"name" gorm:"type:varchar(255);not null"`                      // 知识库名称
+	Description          string `json:"description" gorm:"type:varchar(255);not null"`               // 介绍
+	DatasourceId         int64  `json:"datasourceId,string" gorm:"type:bigint;not null"`             // 数据源ID
+	EmbeddingModel       int64  `json:"embeddingModel,string" gorm:"type:bigint;not null"`           // 嵌入模型ID
+	ChatModel            int64  `json:"chatModel,string" gorm:"type:bigint;not null"`                // 大模型ID
+	EnableKnowledgeGraph *bool  `json:"enableKnowledgeGraph" gorm:"type:boolean;not null;default:0"` // 是否启用知识库图
+	Enable               *bool  `json:"enable" gorm:"type:boolean;not null;default:0"`               // 是否启用
+	Public               *bool  `json:"public" gorm:"type:boolean;not null;default:0"`               // 是否公开
 
-	DatasourceName     string `json:"datasourceName" gorm:"-"`
-	DatasourceType     string `json:"datasourceType" gorm:"-"`
-	EmbeddingModelName string `json:"embeddingModelName" gorm:"-"`
+	//DatasourceName     string `json:"datasourceName" gorm:"-"`
+	//DatasourceType     string `json:"datasourceType" gorm:"-"`
+	//EmbeddingModelName string `json:"embeddingModelName" gorm:"-"`
+	//ChatModelName      string `json:"chatModelName" gorm:"-"`
 }
 
 func (k *KnowledgeBase) TableName() string {
@@ -28,20 +31,24 @@ func (k *KnowledgeBase) TableName() string {
 }
 
 type CreateKnowledgeBaseReq struct {
-	Name           string `json:"name" binding:"required"`
-	Description    string `json:"description" binding:"required"`
-	DatasourceId   int64  `json:"datasourceId,string" binding:"required"`
-	EmbeddingModel int64  `json:"embeddingModel,string" binding:"required"`
-	Enable         *bool  `json:"enable" binding:"required"`
-	Public         *bool  `json:"public" binding:"required"`
+	Name                 string `json:"name" binding:"required"`
+	Description          string `json:"description" binding:"required"`
+	DatasourceId         int64  `json:"datasourceId,string" binding:"required"`
+	EmbeddingModel       int64  `json:"embeddingModel,string" binding:"required"`
+	Enable               *bool  `json:"enable" binding:"required"`
+	Public               *bool  `json:"public" binding:"required"`
+	ChatModel            int64  `json:"chatModel,string" binding:"required"`
+	EnableKnowledgeGraph *bool  `json:"enableKnowledgeGraph" binding:"required"`
 }
 
 type UpdateKnowledgeBaseReq struct {
-	Id          int64  `json:"id,string" binding:"required"`
-	Name        string `json:"name" binding:"required"`
-	Description string `json:"description" binding:"required"`
-	Enable      *bool  `json:"enable" binding:"required"`
-	Public      *bool  `json:"public" binding:"required"`
+	Id                   int64  `json:"id,string" binding:"required"`
+	Name                 string `json:"name" binding:"required"`
+	Description          string `json:"description" binding:"required"`
+	Enable               *bool  `json:"enable" binding:"required"`
+	Public               *bool  `json:"public" binding:"required"`
+	ChatModel            int64  `json:"chatModel,string" binding:"required"`
+	EnableKnowledgeGraph *bool  `json:"enableKnowledgeGraph" binding:"required"`
 }
 
 type KnowledgeBaseQuery struct {
@@ -95,10 +102,7 @@ func ListKnowledgeBase(ctx context.Context, query KnowledgeBaseQuery) ([]*Knowle
 	loginUser := ctx.Value(global.ContextKeyUser).(system.User)
 	var list []*KnowledgeBase
 	var total int64
-	d := repository.DB(ctx).Model(&KnowledgeBase{}).
-		InnerJoins("JOIN monitor_datasource md ON md.id = datasource_id").
-		InnerJoins("JOIN ai_provider_model apm ON apm.id = embedding_model").
-		Select("ai_knowledge_base.*, md.name as datasource_name, apm.model_name as embedding_model_name")
+	d := repository.DB(ctx).Model(&KnowledgeBase{})
 	if query.Private {
 		d = d.Where("ai_knowledge_base.create_by = ?", loginUser.Id)
 	} else {
