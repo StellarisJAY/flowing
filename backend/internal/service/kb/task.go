@@ -297,7 +297,7 @@ func (p *ParseTask) storeNodeFunc(ctx context.Context, _ dag.Node) (result dag.N
 
 func (p *ParseTask) extractKnowledgeGraph(ctx context.Context, _ dag.Node) (result dag.NodeFuncReturn) {
 	// 知识抽取
-	chatModel, err := util.GetChatModel(ctx, *p.kgModelDetail, true)
+	chatModel, err := util.GetChatModel(ctx, *p.kgModelDetail, false, true)
 	if err != nil {
 		panic(fmt.Errorf("获取聊天模型失败: %w", err))
 	}

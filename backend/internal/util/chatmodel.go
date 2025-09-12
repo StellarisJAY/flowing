@@ -11,7 +11,7 @@ import (
 	"github.com/cloudwego/eino/components/model"
 )
 
-func GetChatModel(ctx context.Context, pm ai.ProviderModelDetail, outputJson bool) (model.BaseChatModel, error) {
+func GetChatModel(ctx context.Context, pm ai.ProviderModelDetail, enableThinking bool, outputJson bool) (model.BaseChatModel, error) {
 	var cm model.BaseChatModel
 	var err error
 	format := openai.ChatCompletionResponseFormat{
@@ -36,7 +36,6 @@ func GetChatModel(ctx context.Context, pm ai.ProviderModelDetail, outputJson boo
 		})
 	case ai.ProviderTypeDashscope:
 		config := cnf.(*provider.DashscopeConfig)
-		enableThinking := true
 		cm, err = qwen.NewChatModel(ctx, &qwen.ChatModelConfig{
 			BaseURL:        "https://dashscope.aliyuncs.com/compatible-mode/v1",
 			APIKey:         config.ApiKey,

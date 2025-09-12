@@ -55,7 +55,7 @@ func NewAgentRun(ctx context.Context, agent *agent.Agent, config agent.SimpleAge
 		agentRun.KnowledgeBase = knowledgeBase
 	}
 	// 加载聊天模型实现
-	chatModel, err := util.GetChatModel(ctx, *pm, false)
+	chatModel, err := util.GetChatModel(ctx, *pm, true, false)
 	if err != nil {
 		return nil, err
 	}
